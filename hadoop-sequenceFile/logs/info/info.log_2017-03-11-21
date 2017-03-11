@@ -1,0 +1,286 @@
+2017-03-11 21:05:55  [ main:0 ] - [ WARN ]  Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2017-03-11 21:06:02  [ main:7062 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:06:02  [ main:7064 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:06:04  [ main:9150 ] - [ WARN ]  Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
+2017-03-11 21:06:04  [ main:9555 ] - [ WARN ]  No job jar file set.  User classes may not be found. See Job or Job#setJar(String).
+2017-03-11 21:06:05  [ main:9737 ] - [ INFO ]  Total input paths to process : 1
+2017-03-11 21:06:06  [ main:11526 ] - [ INFO ]  number of splits:1
+2017-03-11 21:06:07  [ main:12193 ] - [ INFO ]  Submitting tokens for job: job_local395381667_0001
+2017-03-11 21:06:07  [ main:12515 ] - [ INFO ]  Cleaning up the staging area file:/tmp/hadoop-wxmimperio/mapred/staging/wxmimperio395381667/.staging/job_local395381667_0001
+2017-03-11 21:08:59  [ main:0 ] - [ WARN ]  Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2017-03-11 21:09:06  [ main:7087 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:09:06  [ main:7089 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:09:07  [ main:8379 ] - [ WARN ]  Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
+2017-03-11 21:09:07  [ main:8696 ] - [ WARN ]  No job jar file set.  User classes may not be found. See Job or Job#setJar(String).
+2017-03-11 21:09:07  [ main:8876 ] - [ INFO ]  Total input paths to process : 1
+2017-03-11 21:09:09  [ main:10364 ] - [ INFO ]  number of splits:1
+2017-03-11 21:09:10  [ main:11059 ] - [ INFO ]  Submitting tokens for job: job_local905677769_0001
+2017-03-11 21:09:10  [ main:11342 ] - [ INFO ]  Cleaning up the staging area file:/tmp/hadoop-wxmimperio/mapred/staging/wxmimperio905677769/.staging/job_local905677769_0001
+2017-03-11 21:18:05  [ main:0 ] - [ WARN ]  Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2017-03-11 21:18:13  [ main:7027 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:18:13  [ main:7029 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:18:13  [ main:7657 ] - [ WARN ]  Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
+2017-03-11 21:18:13  [ main:7783 ] - [ WARN ]  No job jar file set.  User classes may not be found. See Job or Job#setJar(String).
+2017-03-11 21:18:13  [ main:7842 ] - [ INFO ]  Total input paths to process : 1
+2017-03-11 21:18:14  [ main:8364 ] - [ INFO ]  number of splits:1
+2017-03-11 21:18:14  [ main:8734 ] - [ INFO ]  Submitting tokens for job: job_local1444016714_0001
+2017-03-11 21:18:14  [ main:8883 ] - [ INFO ]  Cleaning up the staging area file:/tmp/hadoop-wxmimperio/mapred/staging/wxmimperio1444016714/.staging/job_local1444016714_0001
+2017-03-11 21:31:06  [ main:0 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:31:06  [ main:19 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:31:07  [ main:790 ] - [ WARN ]  Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
+2017-03-11 21:31:07  [ main:794 ] - [ WARN ]  No job jar file set.  User classes may not be found. See Job or Job#setJar(String).
+2017-03-11 21:31:07  [ main:876 ] - [ INFO ]  Total input paths to process : 1
+2017-03-11 21:31:07  [ main:1114 ] - [ INFO ]  Cleaning up the staging area file:/tmp/hadoop-wxmimperio/mapred/staging/wxmimperio524452953/.staging/job_local524452953_0001
+2017-03-11 21:31:07  [ main:1119 ] - [ WARN ]  Failed to delete file or dir [E:\tmp\hadoop-wxmimperio\mapred\staging\wxmimperio524452953\.staging\job_local524452953_0001\.job.split.crc]: it still exists.
+2017-03-11 21:31:07  [ main:1120 ] - [ WARN ]  Failed to delete file or dir [E:\tmp\hadoop-wxmimperio\mapred\staging\wxmimperio524452953\.staging\job_local524452953_0001\job.split]: it still exists.
+2017-03-11 21:36:13  [ main:1 ] - [ ERROR ]  Failed to locate the winutils binary in the hadoop binary path
+java.io.IOException: Could not locate executable E:\software\hadoop-2.6.0-cdh5.4.0\bin\winutils.exe in the Hadoop binaries.
+	at org.apache.hadoop.util.Shell.getQualifiedBinPath(Shell.java:355)
+	at org.apache.hadoop.util.Shell.getWinUtilsPath(Shell.java:370)
+	at org.apache.hadoop.util.Shell.<clinit>(Shell.java:363)
+	at org.apache.hadoop.util.StringUtils.<clinit>(StringUtils.java:79)
+	at org.apache.hadoop.security.Groups.parseStaticMapping(Groups.java:104)
+	at org.apache.hadoop.security.Groups.<init>(Groups.java:86)
+	at org.apache.hadoop.security.Groups.<init>(Groups.java:66)
+	at org.apache.hadoop.security.Groups.getUserToGroupsMappingService(Groups.java:280)
+	at org.apache.hadoop.security.UserGroupInformation.initialize(UserGroupInformation.java:271)
+	at org.apache.hadoop.security.UserGroupInformation.ensureInitialized(UserGroupInformation.java:248)
+	at org.apache.hadoop.security.UserGroupInformation.loginUserFromSubject(UserGroupInformation.java:763)
+	at org.apache.hadoop.security.UserGroupInformation.getLoginUser(UserGroupInformation.java:748)
+	at org.apache.hadoop.security.UserGroupInformation.getCurrentUser(UserGroupInformation.java:621)
+	at org.apache.hadoop.fs.FileSystem$Cache$Key.<init>(FileSystem.java:2753)
+	at org.apache.hadoop.fs.FileSystem$Cache$Key.<init>(FileSystem.java:2745)
+	at org.apache.hadoop.fs.FileSystem$Cache.get(FileSystem.java:2611)
+	at org.apache.hadoop.fs.FileSystem.get(FileSystem.java:370)
+	at com.wxmimperio.hadoop.reader.SequenceFileRead.main(SequenceFileRead.java:25)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at com.intellij.rt.execution.application.AppMain.main(AppMain.java:147)
+2017-03-11 21:49:11  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-11 21:49:11  [ main:16 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-11 21:49:32  [ main:0 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:49:32  [ main:9 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:49:32  [ main:623 ] - [ WARN ]  Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
+2017-03-11 21:49:32  [ main:626 ] - [ WARN ]  No job jar file set.  User classes may not be found. See Job or Job#setJar(String).
+2017-03-11 21:49:32  [ main:657 ] - [ INFO ]  Total input paths to process : 1
+2017-03-11 21:49:32  [ main:756 ] - [ INFO ]  number of splits:1
+2017-03-11 21:49:33  [ main:943 ] - [ INFO ]  Submitting tokens for job: job_local1396752679_0001
+2017-03-11 21:49:33  [ main:1182 ] - [ INFO ]  The url to track the job: http://localhost:8080/
+2017-03-11 21:49:33  [ main:1183 ] - [ INFO ]  Running job: job_local1396752679_0001
+2017-03-11 21:49:33  [ Thread-3:1186 ] - [ INFO ]  OutputCommitter set in config null
+2017-03-11 21:49:33  [ Thread-3:1198 ] - [ INFO ]  OutputCommitter is org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter
+2017-03-11 21:49:33  [ Thread-3:1306 ] - [ INFO ]  Waiting for map tasks
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1307 ] - [ INFO ]  Starting task: attempt_local1396752679_0001_m_000000_0
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1356 ] - [ INFO ]  ProcfsBasedProcessTree currently is supported only on Linux.
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1495 ] - [ INFO ]   Using ResourceCalculatorProcessTree : org.apache.hadoop.yarn.util.WindowsBasedProcessTree@69049cfa
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1501 ] - [ INFO ]  Processing split: hdfs://192.168.1.112:9000/wxm/input/read.txt:0+387
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1553 ] - [ INFO ]  (EQUATOR) 0 kvi 26214396(104857584)
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1553 ] - [ INFO ]  mapreduce.task.io.sort.mb: 100
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1553 ] - [ INFO ]  soft limit at 83886080
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1554 ] - [ INFO ]  bufstart = 0; bufvoid = 104857600
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1554 ] - [ INFO ]  kvstart = 26214396; length = 6553600
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1558 ] - [ INFO ]  Map output collector class = org.apache.hadoop.mapred.MapTask$MapOutputBuffer
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1741 ] - [ INFO ]  
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1745 ] - [ INFO ]  Starting flush of map output
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1833 ] - [ INFO ]  Task:attempt_local1396752679_0001_m_000000_0 is done. And is in the process of committing
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1853 ] - [ INFO ]  map
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1854 ] - [ INFO ]  Task 'attempt_local1396752679_0001_m_000000_0' done.
+2017-03-11 21:49:33  [ LocalJobRunner Map Task Executor #0:1854 ] - [ INFO ]  Finishing task: attempt_local1396752679_0001_m_000000_0
+2017-03-11 21:49:33  [ Thread-3:1855 ] - [ INFO ]  map task executor complete.
+2017-03-11 21:49:33  [ Thread-3:1859 ] - [ INFO ]  Waiting for reduce tasks
+2017-03-11 21:49:33  [ pool-6-thread-1:1860 ] - [ INFO ]  Starting task: attempt_local1396752679_0001_r_000000_0
+2017-03-11 21:49:33  [ pool-6-thread-1:1874 ] - [ INFO ]  ProcfsBasedProcessTree currently is supported only on Linux.
+2017-03-11 21:49:34  [ pool-6-thread-1:2012 ] - [ INFO ]   Using ResourceCalculatorProcessTree : org.apache.hadoop.yarn.util.WindowsBasedProcessTree@224d4141
+2017-03-11 21:49:34  [ pool-6-thread-1:2018 ] - [ INFO ]  Using ShuffleConsumerPlugin: org.apache.hadoop.mapreduce.task.reduce.Shuffle@379ee653
+2017-03-11 21:49:34  [ pool-6-thread-1:2052 ] - [ INFO ]  MergerManager: memoryLimit=1503238528, maxSingleShuffleLimit=375809632, mergeThreshold=992137472, ioSortFactor=10, memToMemMergeOutputsThreshold=10
+2017-03-11 21:49:34  [ EventFetcher for fetching Map Completion Events:2057 ] - [ INFO ]  attempt_local1396752679_0001_r_000000_0 Thread started: EventFetcher for fetching Map Completion Events
+2017-03-11 21:49:34  [ localfetcher#1:2159 ] - [ INFO ]  localfetcher#1 about to shuffle output of map attempt_local1396752679_0001_m_000000_0 decomp: 2 len: 6 to MEMORY
+2017-03-11 21:49:34  [ localfetcher#1:2167 ] - [ INFO ]  Read 2 bytes from map-output for attempt_local1396752679_0001_m_000000_0
+2017-03-11 21:49:34  [ localfetcher#1:2173 ] - [ INFO ]  closeInMemoryFile -> map-output of size: 2, inMemoryMapOutputs.size() -> 1, commitMemory -> 0, usedMemory ->2
+2017-03-11 21:49:34  [ EventFetcher for fetching Map Completion Events:2174 ] - [ INFO ]  EventFetcher is interrupted.. Returning
+2017-03-11 21:49:34  [ pool-6-thread-1:2175 ] - [ INFO ]  1 / 1 copied.
+2017-03-11 21:49:34  [ pool-6-thread-1:2176 ] - [ INFO ]  finalMerge called with 1 in-memory map-outputs and 0 on-disk map-outputs
+2017-03-11 21:49:34  [ pool-6-thread-1:2197 ] - [ INFO ]  Merging 1 sorted segments
+2017-03-11 21:49:34  [ pool-6-thread-1:2198 ] - [ INFO ]  Down to the last merge-pass, with 0 segments left of total size: 0 bytes
+2017-03-11 21:49:34  [ pool-6-thread-1:2204 ] - [ INFO ]  Merged 1 segments, 2 bytes to disk to satisfy reduce memory limit
+2017-03-11 21:49:34  [ pool-6-thread-1:2205 ] - [ INFO ]  Merging 1 files, 6 bytes from disk
+2017-03-11 21:49:34  [ pool-6-thread-1:2207 ] - [ INFO ]  Merging 0 segments, 0 bytes from memory into reduce
+2017-03-11 21:49:34  [ pool-6-thread-1:2207 ] - [ INFO ]  Merging 1 sorted segments
+2017-03-11 21:49:34  [ main:2211 ] - [ INFO ]  Job job_local1396752679_0001 running in uber mode : false
+2017-03-11 21:49:34  [ main:2215 ] - [ INFO ]   map 100% reduce 0%
+2017-03-11 21:49:34  [ pool-6-thread-1:2215 ] - [ INFO ]  Down to the last merge-pass, with 0 segments left of total size: 0 bytes
+2017-03-11 21:49:34  [ pool-6-thread-1:2216 ] - [ INFO ]  1 / 1 copied.
+2017-03-11 21:49:34  [ pool-6-thread-1:2338 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-11 21:49:34  [ pool-6-thread-1:2341 ] - [ INFO ]  Got brand-new compressor [.deflate]
+2017-03-11 21:49:34  [ pool-6-thread-1:2350 ] - [ INFO ]  mapred.skip.on is deprecated. Instead, use mapreduce.job.skiprecords
+2017-03-11 21:49:35  [ pool-6-thread-1:3085 ] - [ INFO ]  Task:attempt_local1396752679_0001_r_000000_0 is done. And is in the process of committing
+2017-03-11 21:49:35  [ pool-6-thread-1:3096 ] - [ INFO ]  1 / 1 copied.
+2017-03-11 21:49:35  [ pool-6-thread-1:3097 ] - [ INFO ]  Task attempt_local1396752679_0001_r_000000_0 is allowed to commit now
+2017-03-11 21:49:35  [ pool-6-thread-1:3155 ] - [ INFO ]  Saved output of task 'attempt_local1396752679_0001_r_000000_0' to hdfs://192.168.1.112:9000/wxm/input/write.txt/_temporary/0/task_local1396752679_0001_r_000000
+2017-03-11 21:49:35  [ pool-6-thread-1:3157 ] - [ INFO ]  reduce > reduce
+2017-03-11 21:49:35  [ pool-6-thread-1:3157 ] - [ INFO ]  Task 'attempt_local1396752679_0001_r_000000_0' done.
+2017-03-11 21:49:35  [ pool-6-thread-1:3158 ] - [ INFO ]  Finishing task: attempt_local1396752679_0001_r_000000_0
+2017-03-11 21:49:35  [ Thread-3:3158 ] - [ INFO ]  reduce task executor complete.
+2017-03-11 21:49:35  [ main:3216 ] - [ INFO ]   map 100% reduce 100%
+2017-03-11 21:49:36  [ main:4219 ] - [ INFO ]  Job job_local1396752679_0001 completed successfully
+2017-03-11 21:49:36  [ main:4280 ] - [ INFO ]  Counters: 38
+	File System Counters
+		FILE: Number of bytes read=368
+		FILE: Number of bytes written=517686
+		FILE: Number of read operations=0
+		FILE: Number of large read operations=0
+		FILE: Number of write operations=0
+		HDFS: Number of bytes read=774
+		HDFS: Number of bytes written=87
+		HDFS: Number of read operations=13
+		HDFS: Number of large read operations=0
+		HDFS: Number of write operations=4
+	Map-Reduce Framework
+		Map input records=23
+		Map output records=0
+		Map output bytes=0
+		Map output materialized bytes=6
+		Input split bytes=109
+		Combine input records=0
+		Combine output records=0
+		Reduce input groups=0
+		Reduce shuffle bytes=6
+		Reduce input records=0
+		Reduce output records=0
+		Spilled Records=0
+		Shuffled Maps =1
+		Failed Shuffles=0
+		Merged Map outputs=1
+		GC time elapsed (ms)=8
+		CPU time spent (ms)=0
+		Physical memory (bytes) snapshot=0
+		Virtual memory (bytes) snapshot=0
+		Total committed heap usage (bytes)=505413632
+	Shuffle Errors
+		BAD_ID=0
+		CONNECTION=0
+		IO_ERROR=0
+		WRONG_LENGTH=0
+		WRONG_MAP=0
+		WRONG_REDUCE=0
+	File Input Format Counters 
+		Bytes Read=387
+	File Output Format Counters 
+		Bytes Written=87
+2017-03-11 21:52:36  [ main:0 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:52:36  [ main:6 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:53:10  [ main:0 ] - [ INFO ]  session.id is deprecated. Instead, use dfs.metrics.session-id
+2017-03-11 21:53:10  [ main:7 ] - [ INFO ]  Initializing JVM Metrics with processName=JobTracker, sessionId=
+2017-03-11 21:53:11  [ main:977 ] - [ WARN ]  Hadoop command-line option parsing not performed. Implement the Tool interface and execute your application with ToolRunner to remedy this.
+2017-03-11 21:53:11  [ main:982 ] - [ WARN ]  No job jar file set.  User classes may not be found. See Job or Job#setJar(String).
+2017-03-11 21:53:11  [ main:1024 ] - [ INFO ]  Total input paths to process : 1
+2017-03-11 21:53:11  [ main:1123 ] - [ INFO ]  number of splits:1
+2017-03-11 21:53:12  [ main:1287 ] - [ INFO ]  Submitting tokens for job: job_local356150718_0001
+2017-03-11 21:53:12  [ main:1477 ] - [ INFO ]  The url to track the job: http://localhost:8080/
+2017-03-11 21:53:12  [ main:1479 ] - [ INFO ]  Running job: job_local356150718_0001
+2017-03-11 21:53:12  [ Thread-3:1482 ] - [ INFO ]  OutputCommitter set in config null
+2017-03-11 21:53:12  [ Thread-3:1492 ] - [ INFO ]  OutputCommitter is org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter
+2017-03-11 21:53:12  [ Thread-3:1574 ] - [ INFO ]  Waiting for map tasks
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1576 ] - [ INFO ]  Starting task: attempt_local356150718_0001_m_000000_0
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1624 ] - [ INFO ]  ProcfsBasedProcessTree currently is supported only on Linux.
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1718 ] - [ INFO ]   Using ResourceCalculatorProcessTree : org.apache.hadoop.yarn.util.WindowsBasedProcessTree@186d0379
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1724 ] - [ INFO ]  Processing split: hdfs://192.168.1.112:9000/wxm/input/read.txt:0+387
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1784 ] - [ INFO ]  (EQUATOR) 0 kvi 26214396(104857584)
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1785 ] - [ INFO ]  mapreduce.task.io.sort.mb: 100
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1785 ] - [ INFO ]  soft limit at 83886080
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1785 ] - [ INFO ]  bufstart = 0; bufvoid = 104857600
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1785 ] - [ INFO ]  kvstart = 26214396; length = 6553600
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:1792 ] - [ INFO ]  Map output collector class = org.apache.hadoop.mapred.MapTask$MapOutputBuffer
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:2101 ] - [ INFO ]  
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:2112 ] - [ INFO ]  Starting flush of map output
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:2113 ] - [ INFO ]  Spilling map output
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:2114 ] - [ INFO ]  bufstart = 0; bufend = 423; bufvoid = 104857600
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:2114 ] - [ INFO ]  kvstart = 26214396(104857584); kvend = 26214256(104857024); length = 141/6553600
+2017-03-11 21:53:12  [ LocalJobRunner Map Task Executor #0:2168 ] - [ INFO ]  Finished spill 0
+2017-03-11 21:53:13  [ LocalJobRunner Map Task Executor #0:2194 ] - [ INFO ]  Task:attempt_local356150718_0001_m_000000_0 is done. And is in the process of committing
+2017-03-11 21:53:13  [ LocalJobRunner Map Task Executor #0:2222 ] - [ INFO ]  map
+2017-03-11 21:53:13  [ LocalJobRunner Map Task Executor #0:2223 ] - [ INFO ]  Task 'attempt_local356150718_0001_m_000000_0' done.
+2017-03-11 21:53:13  [ LocalJobRunner Map Task Executor #0:2223 ] - [ INFO ]  Finishing task: attempt_local356150718_0001_m_000000_0
+2017-03-11 21:53:13  [ Thread-3:2223 ] - [ INFO ]  map task executor complete.
+2017-03-11 21:53:13  [ Thread-3:2227 ] - [ INFO ]  Waiting for reduce tasks
+2017-03-11 21:53:13  [ pool-6-thread-1:2232 ] - [ INFO ]  Starting task: attempt_local356150718_0001_r_000000_0
+2017-03-11 21:53:13  [ pool-6-thread-1:2250 ] - [ INFO ]  ProcfsBasedProcessTree currently is supported only on Linux.
+2017-03-11 21:53:13  [ pool-6-thread-1:2424 ] - [ INFO ]   Using ResourceCalculatorProcessTree : org.apache.hadoop.yarn.util.WindowsBasedProcessTree@1aa1a034
+2017-03-11 21:53:13  [ pool-6-thread-1:2429 ] - [ INFO ]  Using ShuffleConsumerPlugin: org.apache.hadoop.mapreduce.task.reduce.Shuffle@39eddfd8
+2017-03-11 21:53:13  [ pool-6-thread-1:2449 ] - [ INFO ]  MergerManager: memoryLimit=1503238528, maxSingleShuffleLimit=375809632, mergeThreshold=992137472, ioSortFactor=10, memToMemMergeOutputsThreshold=10
+2017-03-11 21:53:13  [ EventFetcher for fetching Map Completion Events:2455 ] - [ INFO ]  attempt_local356150718_0001_r_000000_0 Thread started: EventFetcher for fetching Map Completion Events
+2017-03-11 21:53:13  [ main:2497 ] - [ INFO ]  Job job_local356150718_0001 running in uber mode : false
+2017-03-11 21:53:13  [ main:2500 ] - [ INFO ]   map 100% reduce 0%
+2017-03-11 21:53:13  [ localfetcher#1:2533 ] - [ INFO ]  localfetcher#1 about to shuffle output of map attempt_local356150718_0001_m_000000_0 decomp: 497 len: 501 to MEMORY
+2017-03-11 21:53:13  [ localfetcher#1:2543 ] - [ INFO ]  Read 497 bytes from map-output for attempt_local356150718_0001_m_000000_0
+2017-03-11 21:53:13  [ localfetcher#1:2551 ] - [ INFO ]  closeInMemoryFile -> map-output of size: 497, inMemoryMapOutputs.size() -> 1, commitMemory -> 0, usedMemory ->497
+2017-03-11 21:53:13  [ EventFetcher for fetching Map Completion Events:2554 ] - [ INFO ]  EventFetcher is interrupted.. Returning
+2017-03-11 21:53:13  [ pool-6-thread-1:2555 ] - [ INFO ]  1 / 1 copied.
+2017-03-11 21:53:13  [ pool-6-thread-1:2556 ] - [ INFO ]  finalMerge called with 1 in-memory map-outputs and 0 on-disk map-outputs
+2017-03-11 21:53:13  [ pool-6-thread-1:2577 ] - [ INFO ]  Merging 1 sorted segments
+2017-03-11 21:53:13  [ pool-6-thread-1:2578 ] - [ INFO ]  Down to the last merge-pass, with 1 segments left of total size: 494 bytes
+2017-03-11 21:53:13  [ pool-6-thread-1:2583 ] - [ INFO ]  Merged 1 segments, 497 bytes to disk to satisfy reduce memory limit
+2017-03-11 21:53:13  [ pool-6-thread-1:2586 ] - [ INFO ]  Merging 1 files, 501 bytes from disk
+2017-03-11 21:53:13  [ pool-6-thread-1:2587 ] - [ INFO ]  Merging 0 segments, 0 bytes from memory into reduce
+2017-03-11 21:53:13  [ pool-6-thread-1:2587 ] - [ INFO ]  Merging 1 sorted segments
+2017-03-11 21:53:13  [ pool-6-thread-1:2589 ] - [ INFO ]  Down to the last merge-pass, with 1 segments left of total size: 494 bytes
+2017-03-11 21:53:13  [ pool-6-thread-1:2590 ] - [ INFO ]  1 / 1 copied.
+2017-03-11 21:53:13  [ pool-6-thread-1:2663 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-11 21:53:13  [ pool-6-thread-1:2665 ] - [ INFO ]  Got brand-new compressor [.deflate]
+2017-03-11 21:53:13  [ pool-6-thread-1:2679 ] - [ INFO ]  mapred.skip.on is deprecated. Instead, use mapreduce.job.skiprecords
+2017-03-11 21:53:13  [ pool-6-thread-1:2833 ] - [ INFO ]  Task:attempt_local356150718_0001_r_000000_0 is done. And is in the process of committing
+2017-03-11 21:53:13  [ pool-6-thread-1:2838 ] - [ INFO ]  1 / 1 copied.
+2017-03-11 21:53:13  [ pool-6-thread-1:2839 ] - [ INFO ]  Task attempt_local356150718_0001_r_000000_0 is allowed to commit now
+2017-03-11 21:53:13  [ pool-6-thread-1:2851 ] - [ INFO ]  Saved output of task 'attempt_local356150718_0001_r_000000_0' to hdfs://192.168.1.112:9000/wxm/output/write.txt/_temporary/0/task_local356150718_0001_r_000000
+2017-03-11 21:53:13  [ pool-6-thread-1:2853 ] - [ INFO ]  reduce > reduce
+2017-03-11 21:53:13  [ pool-6-thread-1:2853 ] - [ INFO ]  Task 'attempt_local356150718_0001_r_000000_0' done.
+2017-03-11 21:53:13  [ pool-6-thread-1:2853 ] - [ INFO ]  Finishing task: attempt_local356150718_0001_r_000000_0
+2017-03-11 21:53:13  [ Thread-3:2853 ] - [ INFO ]  reduce task executor complete.
+2017-03-11 21:53:14  [ main:3502 ] - [ INFO ]   map 100% reduce 100%
+2017-03-11 21:53:14  [ main:3504 ] - [ INFO ]  Job job_local356150718_0001 completed successfully
+2017-03-11 21:53:14  [ main:3546 ] - [ INFO ]  Counters: 38
+	File System Counters
+		FILE: Number of bytes read=1358
+		FILE: Number of bytes written=516491
+		FILE: Number of read operations=0
+		FILE: Number of large read operations=0
+		FILE: Number of write operations=0
+		HDFS: Number of bytes read=774
+		HDFS: Number of bytes written=211
+		HDFS: Number of read operations=13
+		HDFS: Number of large read operations=0
+		HDFS: Number of write operations=4
+	Map-Reduce Framework
+		Map input records=23
+		Map output records=36
+		Map output bytes=423
+		Map output materialized bytes=501
+		Input split bytes=109
+		Combine input records=0
+		Combine output records=0
+		Reduce input groups=3
+		Reduce shuffle bytes=501
+		Reduce input records=36
+		Reduce output records=3
+		Spilled Records=72
+		Shuffled Maps =1
+		Failed Shuffles=0
+		Merged Map outputs=1
+		GC time elapsed (ms)=7
+		CPU time spent (ms)=0
+		Physical memory (bytes) snapshot=0
+		Virtual memory (bytes) snapshot=0
+		Total committed heap usage (bytes)=502267904
+	Shuffle Errors
+		BAD_ID=0
+		CONNECTION=0
+		IO_ERROR=0
+		WRONG_LENGTH=0
+		WRONG_MAP=0
+		WRONG_REDUCE=0
+	File Input Format Counters 
+		Bytes Read=387
+	File Output Format Counters 
+		Bytes Written=211
