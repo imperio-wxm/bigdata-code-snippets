@@ -1,0 +1,20 @@
+2017-03-12 21:14:04  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 21:14:04  [ main:10 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:04  [ main:21 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:04  [ main:22 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:04  [ main:24 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:54  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 21:14:54  [ main:7 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:54  [ main:26 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:54  [ main:27 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:14:54  [ main:28 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:51:26  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 21:51:26  [ main:8 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:51:26  [ main:20 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:51:26  [ main:21 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:51:26  [ main:21 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:53:42  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 21:53:42  [ main:6 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:53:42  [ main:17 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:53:42  [ main:18 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 21:53:42  [ main:18 ] - [ INFO ]  Got brand-new decompressor [.deflate]

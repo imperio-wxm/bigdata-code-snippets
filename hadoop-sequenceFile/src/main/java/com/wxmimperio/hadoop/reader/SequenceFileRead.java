@@ -26,7 +26,7 @@ public class SequenceFileRead {
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(URI.create(uri), conf);
 
-        String filePath = "/wxm/kafka";
+        String filePath = "/wxm/kafka/1";
         //String filePath = "/wxm/output/write/part-r-00000";
         Path path = new Path(filePath);
         SequenceFile.Reader reader = null;

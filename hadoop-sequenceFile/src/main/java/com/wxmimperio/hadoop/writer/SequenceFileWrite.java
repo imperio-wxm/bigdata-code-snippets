@@ -29,13 +29,7 @@ public class SequenceFileWrite {
             "Nine, ten, a big fat hen",
     };
 
-    private String filePath;
-
-    public SequenceFileWrite(String filePath) {
-        this.filePath = filePath;
-    }
-
-    public void run() {
+    public static void start(String filePath, String[] data) {
         SequenceFile.Writer writer = null;
 
         try {
@@ -66,13 +60,12 @@ public class SequenceFileWrite {
             );
 
             int index = 0;
-            for (String str : DATA) {
+            for (String str : data) {
                 //key.set(EMPTY_KEY);
                 value.set(str);
                 writer.append(EMPTY_KEY, value);
                 index++;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -84,10 +77,46 @@ public class SequenceFileWrite {
 
         System.setProperty("hadoop.home.dir", "E:\\software\\hadoop-2.6.0-cdh5.4.0");
 
-        String filePath = "/wxm/kafka";
+       /* String filePath = "/wxm/kafka";
 
-        for (int i = 0; i < 10; i++) {
-            new SequenceFileWrite(filePath).run();
+        for (int i = 0; i < 3; i++) {
+            start(filePath + i, DATA);
+        }
+
+        for (int i = 0; i < 3; i++) {
+            start(filePath + i, DATA);
+        }*/
+
+        new SequenceFileWrite().hdfsRun();
+
+
+    }
+
+    public void hdfsRun() {
+        String filePath = "/wxm/kafka";
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+        for (int i = 0; i < 3; i++) {
+            executorService.submit(new HDFS(filePath + "/" + i, DATA));
+        }
+    }
+
+    class HDFS implements Runnable {
+
+        private String filePath;
+        private String[] data;
+
+        public HDFS(String filePath, String[] data) {
+            this.filePath = filePath;
+            this.data = data;
+        }
+
+        @Override
+        public void run() {
+            for(int i = 0;i < 20;i++) {
+                start(filePath, data);
+            }
+            System.out.println(Thread.currentThread().getName());
         }
     }
 }
