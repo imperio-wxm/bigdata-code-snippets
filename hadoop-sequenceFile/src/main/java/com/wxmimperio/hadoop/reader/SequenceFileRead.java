@@ -18,14 +18,16 @@ public class SequenceFileRead {
 
     public static void main(String[] args) throws IOException {
         System.setProperty("hadoop.home.dir", "E:\\software\\hadoop-2.6.0-cdh5.4.0");
+        System.setProperty("dfs.client.block.write.replace-datanode-on-failure.enable","true");
+        System.setProperty("dfs.client.block.write.replace-datanode-on-failure.policy","NEVER");
 
         // TODO Auto-generated method stub
         String uri = "hdfs://192.168.1.112:9000";
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(URI.create(uri), conf);
 
-        //String filePath = "/wxm/kafka";
-        String filePath = "/wxm/output/write/part-r-00000";
+        String filePath = "/wxm/kafka";
+        //String filePath = "/wxm/output/write/part-r-00000";
         Path path = new Path(filePath);
         SequenceFile.Reader reader = null;
         try {

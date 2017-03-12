@@ -1,0 +1,25 @@
+2017-03-12 19:42:40  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 19:42:40  [ main:8 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:42:40  [ main:21 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:42:40  [ main:22 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:42:40  [ main:22 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:44:29  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 19:44:29  [ main:5 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:44:29  [ main:16 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:44:29  [ main:16 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:44:29  [ main:17 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:47:27  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 19:47:27  [ main:6 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:47:27  [ main:28 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:47:27  [ main:28 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:47:27  [ main:29 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:50:43  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 19:50:43  [ main:27 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:50:43  [ main:56 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:50:43  [ main:56 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:50:43  [ main:56 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:51:01  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
+2017-03-12 19:51:01  [ main:12 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:51:01  [ main:33 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:51:01  [ main:34 ] - [ INFO ]  Got brand-new decompressor [.deflate]
+2017-03-12 19:51:01  [ main:34 ] - [ INFO ]  Got brand-new decompressor [.deflate]
