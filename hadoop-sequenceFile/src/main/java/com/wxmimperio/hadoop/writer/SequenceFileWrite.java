@@ -55,6 +55,7 @@ public class SequenceFileWrite {
                     SequenceFile.Writer.file(path),
                     SequenceFile.Writer.keyClass(key.getClass()),
                     SequenceFile.Writer.valueClass(value.getClass()),
+					// for hadoop-2.6.1+
                     SequenceFile.Writer.appendIfExists(true),
                     SequenceFile.Writer.compression(SequenceFile.CompressionType.BLOCK)
             );
