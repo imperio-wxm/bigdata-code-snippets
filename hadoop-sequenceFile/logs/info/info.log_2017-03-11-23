@@ -1,4 +1,0 @@
-2017-03-11 23:29:17  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
-2017-03-11 23:29:17  [ main:17 ] - [ INFO ]  Got brand-new decompressor [.deflate]
-2017-03-11 23:44:44  [ main:0 ] - [ WARN ]  Failed to load/initialize native-zlib library
-2017-03-11 23:44:44  [ main:14 ] - [ INFO ]  Got brand-new decompressor [.deflate]
