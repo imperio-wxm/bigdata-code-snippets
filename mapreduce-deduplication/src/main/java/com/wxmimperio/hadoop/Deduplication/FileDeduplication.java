@@ -47,13 +47,15 @@ public class FileDeduplication {
         conf.setBoolean("mapred.output.compress", false);
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-        if (otherArgs.length != 2) {
-            LOG.error("Usage: wordcount <in> <out>");
+        if (otherArgs.length != 3) {
+            LOG.error("Usage: java -cp xxx.jar com.xxx.FileDeduplication <inPath> <inputFormat> <outPath>");
             System.exit(2);
         }
 
+        Class inputFormat = Class.forName(otherArgs[1]);
+
         // delete output directory
-        deleteFile(conf, otherArgs[1]);
+        deleteFile(conf, otherArgs[2]);
 
         Job job = Job.getInstance();
         job.setJarByClass(FileDeduplication.class);
@@ -61,10 +63,11 @@ public class FileDeduplication {
         job.setReducerClass(DeduplicationReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
+        job.setInputFormatClass(inputFormat);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
-        SequenceFileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
+        SequenceFileOutputFormat.setOutputPath(job, new Path(otherArgs[2]));
         SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
