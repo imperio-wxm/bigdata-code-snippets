@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.slf4j.Logger;
@@ -23,28 +24,38 @@ import java.io.IOException;
  */
 public class FileDeduplication {
     private static final Logger LOG = LoggerFactory.getLogger(FileDeduplication.class);
+    private static final String MAPRED_OUTPUT_COMPRESS = "mapred.output.compress";
     private static final String EMPTY = "";
 
     public static class DeduplicationMapper extends Mapper<Object, Text, Text, Text> {
 
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
-            context.write(value, new Text(EMPTY));
+            if (key.toString().equalsIgnoreCase(EMPTY)) {
+                context.write(value, new Text(EMPTY));
+            } else {
+                context.write((Text) key, value);
+            }
         }
     }
 
-    public static class DeduplicationReducer extends Reducer<Text, IntWritable, Text, Text> {
+    public static class DeduplicationReducer extends Reducer<Text, Text, Text, Text> {
 
         @Override
-        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            context.write(new Text(EMPTY), key);
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            Text value = values.iterator().next();
+            if (value.toString().equalsIgnoreCase(EMPTY)) {
+                context.write(new Text(EMPTY), key);
+            } else {
+                context.write(key, value);
+            }
         }
     }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
         conf.set("fs.defaultFS", "hdfs://sdg");
-        conf.setBoolean("mapred.output.compress", false);
+        conf.setBoolean(MAPRED_OUTPUT_COMPRESS, false);
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
