@@ -54,7 +54,7 @@ public class FileDeduplication {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "hdfs://sdg");
+        conf.set("fs.defaultFS", "");
         conf.setBoolean(MAPRED_OUTPUT_COMPRESS, false);
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
