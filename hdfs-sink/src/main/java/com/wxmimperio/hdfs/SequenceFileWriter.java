@@ -1,11 +1,14 @@
 package com.wxmimperio.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.URI;
 
 /**
  * Created by wxmimperio on 2017/9/10.
@@ -32,11 +35,13 @@ public class SequenceFileWriter implements RecordWriter {
 
     @Override
     public void write(Object key, Object value) throws Exception {
-        writer.append((Text) key, (Text) value);
+        writer.append(new Text((String) key), new Text((String) value));
+        writer.hflush();
     }
 
     @Override
     public void close() throws Exception {
+        writer.hflush();
         writer.close();
         LOG.info("Writer " + filePath + " closed.");
     }
@@ -59,6 +64,6 @@ public class SequenceFileWriter implements RecordWriter {
 
     @Override
     public boolean shouldClosed() {
-        return (System.currentTimeMillis() - fileCreateTimestamp) / 1000 > 60;
+        return (System.currentTimeMillis() - fileCreateTimestamp) / 1000 > 10;
     }
 }

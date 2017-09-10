@@ -23,5 +23,5 @@ public interface RecordWriter<V> {
 
     void close() throws Exception;
 
-    boolean shouldClosed();
+    boolean shouldClosed() throws Exception;
 }

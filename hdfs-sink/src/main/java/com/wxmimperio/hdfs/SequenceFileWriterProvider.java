@@ -11,6 +11,6 @@ public class SequenceFileWriterProvider implements RecordWriterProvider {
 
     @Override
     public RecordWriter<String> getRecordWriter(Configuration conf, String fileName) throws IOException {
-        return new SequenceFileWriter(fileName,conf);
+        return new SequenceFileWriter(fileName, conf);
     }
 }
