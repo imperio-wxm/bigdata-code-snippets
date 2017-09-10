@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<configuration>
+
+    <!-- Site specific YARN configuration properties -->
+    <property>
+        <name>yarn.resourcemanager.resource-tracker.address</name>
+        <value>10.1.9.100:8091</value>
+    </property>
+
+    <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>10.1.9.100:8092</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+        <value>16384</value>
+    </property>
+    <property>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+        <value>16</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.scheduler.class</name>
+        <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler</value>
+    </property>
+    <property>
+        <name>yarn.resourcemanager.scheduler.address</name>
+        <value>10.1.9.100:8096</value>
+    </property>
+
+    <property>
+        <name>yarn.resourcemanager.admin.address</name>
+        <value>10.1.9.100:8093</value>
+    </property>
+
+    <property>
+        <name>yarn.resourcemanager.webapp.address</name>
+        <value>10.1.9.100:8098</value>
+    </property>
+
+    <property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce.shuffle</value>
+    </property>
+
+    <property>
+        <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+        <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+    </property>
+    <property>
+        <description>The hostname of the RM.</description>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>10.1.9.100</value>
+    </property>
+
+    <property>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+        <value>1024</value>
+    </property>
+    <property>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+        <value>8192</value>
+    </property>
+</configuration>
