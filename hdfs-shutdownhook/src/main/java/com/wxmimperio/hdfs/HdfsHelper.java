@@ -13,6 +13,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by weiximing.imperio on 2017/9/27.
@@ -40,10 +42,11 @@ public class HdfsHelper {
         conf.addResource(YARN_SITE_XML);
         conf.setBoolean(DFS_SUPPORT_APPEND, true);
         conf.setBoolean(DFS_FAILURE_ENABLE, true);
-        conf.set(DEFAULTFS, "");
+        conf.set(DEFAULTFS, "hdfs://sdg");
         conf.set(DFS_FAILURE_POLICY, "NEVER");
         conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
         conf.set(DFS_TRANSFER_THREADS, "16000");
+        conf.setBoolean("fs.automatic.close", false);
         return conf;
     }
 
@@ -86,14 +89,12 @@ public class HdfsHelper {
                         msgValueText.set(String.valueOf(i) + "_test");
                         msgKeyText.set(String.valueOf(i));
                         writer.append(msgKeyText, msgValueText);
-                        writer.sync();
+                        writer.hflush();
                         System.out.println("sleep " + i);
                     }
                     System.out.println("end write----- ");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+
                 }
                 System.out.println("finish...");
                 try {
@@ -121,4 +122,45 @@ public class HdfsHelper {
             }
         });
     }
+
+    /*public static void sequenceFileWriter(String filePath, List<String> buffer) {
+        SequenceFile.Writer writer = null;
+        long index = 0;
+        try {
+            Path sequencePath = new Path(filePath);
+            writer = SequenceFile.createWriter(
+                    config(),
+                    SequenceFile.Writer.file(sequencePath),
+                    SequenceFile.Writer.keyClass(Text.class),
+                    SequenceFile.Writer.valueClass(Text.class),
+                    // In hadoop-2.6.0-cdh5, it can use hadoop-common-2.6.5
+                    // with appendIfExists()
+                    SequenceFile.Writer.appendIfExists(true),
+                    SequenceFile.Writer.compression(SequenceFile.CompressionType.BLOCK)
+            );
+            String msgValue = "";
+            String msgKey = "";
+            for (String data : buffer) {
+                try {
+                    String[] message = data.split("\\t", -1);
+                    try {
+                        msgKey = message[message.length - 1];
+                    } catch (Exception e) {
+                        msgKey = String.valueOf(System.currentTimeMillis());
+                    }
+                    String[] messageCopy = Arrays.copyOf(message, message.length - 1);
+                    msgValue = StringUtils.join(Arrays.asList(messageCopy), "\t").toString();
+                    writer.append(new Text((String) msgKey), new Text((String) msgValue));
+                    index++;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            writer.sync();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeStream(writer);
+        }
+    }*/
 }
