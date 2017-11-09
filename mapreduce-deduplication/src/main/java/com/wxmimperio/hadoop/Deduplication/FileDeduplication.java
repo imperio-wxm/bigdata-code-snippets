@@ -65,6 +65,7 @@ public class FileDeduplication {
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
+			// inputFormat：org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat
             LOG.error("Usage: java -cp xxx.jar com.xxx.FileDeduplication <inPath> <inputFormat> <outPath>");
             System.exit(2);
         }
