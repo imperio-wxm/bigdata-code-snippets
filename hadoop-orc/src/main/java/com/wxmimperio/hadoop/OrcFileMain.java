@@ -1,8 +1,10 @@
 package com.wxmimperio.hadoop;
 
 import com.google.common.collect.Lists;
+import com.wxmimperio.hadoop.reader.OrcFileReader;
 import com.wxmimperio.hadoop.writer.OrcFileWriter;
 
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -48,6 +50,16 @@ public class OrcFileMain {
 
             //System.out.println(stringBuilder.toString());
         }
-        OrcFileWriter.writeOrc("dw", "cd_item_glog", datas, "/wxm/orc_test/cd_item_glog_file", 1024);
+
+        // write test
+        //OrcFileWriter.writeOrc("dw", "cd_item_glog", datas, "/wxm/orc_test/cd_item_glog_file", 1024);
+
+        // read test
+        OrcFileReader orcFileReader = new OrcFileReader(args[0]);
+        Iterator<String> readLines = orcFileReader.iterator();
+        while (readLines.hasNext()) {
+            System.out.println(readLines.next());
+        }
+        orcFileReader.close();
     }
 }
