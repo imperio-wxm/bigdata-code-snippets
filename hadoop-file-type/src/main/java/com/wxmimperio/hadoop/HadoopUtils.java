@@ -3,6 +3,7 @@ package com.wxmimperio.hadoop;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.orc.OrcFile;
@@ -47,6 +48,11 @@ public class HadoopUtils {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public static boolean isFileClosed(String uri, String filePath) throws IOException, URISyntaxException {
+        FileSystem fs = FileSystem.get(new URI(uri), conf);
+        return ((DistributedFileSystem) fs).isFileClosed(new Path(filePath));
     }
 
 }
