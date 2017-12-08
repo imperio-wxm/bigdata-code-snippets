@@ -15,7 +15,8 @@ public class HbaseMain {
             hbaseAdmin.createTable("test_table_1207", new String[]{"cf1", "cf2"});
             for (int i = 1; i <= 10; i++) {
                 hbaseAdmin.insterRow("test_table_1207", "rw" + i, "cf1", "q" + i, "val_q" + i);
-                hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
+                //hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
+                hbaseAdmin.scanData("test_table_1207", "rw1", "rw10");
             }
             hbaseAdmin.close();
         } catch (Exception e) {

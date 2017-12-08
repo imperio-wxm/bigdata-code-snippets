@@ -1,10 +1,7 @@
 package com.wxmimperio.hbase.hbaseadmin;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HColumnDescriptor;
-import org.apache.hadoop.hbase.HTableDescriptor;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -66,11 +63,33 @@ public class HbaseAdmin {
         Table table = connection.getTable(TableName.valueOf(tableName));
         Put put = new Put(Bytes.toBytes(rowKey));
         put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(col), Bytes.toBytes(val));
-        table.put(put);
-        /*List<Put> putList = new ArrayList<Put>();
+        //table.put(put);
+        List<Put> putList = new ArrayList<Put>();
         putList.add(put);
-        table.put(putList);*/
+        table.put(putList);
         table.close();
     }
 
+    public void scanData(String tableName, String startRow, String stopRow) throws IOException {
+        Table table = connection.getTable(TableName.valueOf(tableName));
+        Scan scan = new Scan();
+        scan.setStartRow(Bytes.toBytes(startRow));
+        scan.setStopRow(Bytes.toBytes(stopRow));
+        ResultScanner resultScanner = table.getScanner(scan);
+        for (Result result : resultScanner) {
+            showCell(result);
+        }
+        table.close();
+    }
+
+    private void showCell(Result result) {
+        Cell[] cells = result.rawCells();
+        for (Cell cell : cells) {
+            System.out.println("RowName:" + new String(CellUtil.cloneRow(cell)) + " ");
+            System.out.println("Timetamp:" + cell.getTimestamp() + " ");
+            System.out.println("column Family:" + new String(CellUtil.cloneFamily(cell)) + " ");
+            System.out.println("row Name:" + new String(CellUtil.cloneQualifier(cell)) + " ");
+            System.out.println("value:" + new String(CellUtil.cloneValue(cell)) + " ");
+        }
+    }
 }
