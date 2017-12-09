@@ -15,8 +15,10 @@ import java.util.List;
 public class HbaseAdmin {
     private static Logger LOG = LoggerFactory.getLogger(HbaseAdmin.class);
 
-    public static Connection connection;
-    public static Admin admin;
+    private static Connection connection;
+    private static Admin admin;
+    private static String HBASE_SITE = "hbase-site.xml";
+
 
     public HbaseAdmin() {
         initHbase();
@@ -24,8 +26,9 @@ public class HbaseAdmin {
 
     private void initHbase() {
         Configuration configuration = HBaseConfiguration.create();
-        configuration.set("hbase.zookeeper.quorum", "");
-        configuration.set("hbase.zookeeper.property.clientPort", "2181");
+        configuration.addResource(HBASE_SITE);
+        /*configuration.set("hbase.zookeeper.quorum", "");
+        configuration.set("hbase.zookeeper.property.clientPort", "2181");*/
         try {
             connection = ConnectionFactory.createConnection(configuration);
             admin = connection.getAdmin();
