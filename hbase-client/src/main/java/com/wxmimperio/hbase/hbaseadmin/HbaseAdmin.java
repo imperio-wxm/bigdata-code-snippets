@@ -109,4 +109,16 @@ public class HbaseAdmin {
         table.delete(delete);
         table.close();
     }
+
+    public boolean deleteTable(String tableName) throws IOException {
+        TableName hbaseTable = TableName.valueOf(tableName);
+        // disable table
+        admin.disableTable(hbaseTable);
+        // delete table
+        admin.deleteTable(hbaseTable);
+        if (admin.tableExists(hbaseTable)) {
+            return false;
+        }
+        return true;
+    }
 }
