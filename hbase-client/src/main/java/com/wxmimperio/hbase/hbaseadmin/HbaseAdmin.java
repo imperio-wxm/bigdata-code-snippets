@@ -101,4 +101,12 @@ public class HbaseAdmin {
         showCell(result);
         table.close();
     }
+
+    public void deleteCell(String tableName, String rowKey, String columnName, String qulifier) throws IOException {
+        Table table = connection.getTable(TableName.valueOf(tableName));
+        Delete delete = new Delete(rowKey.getBytes());
+        delete.addColumn(columnName.getBytes(), qulifier.getBytes());
+        table.delete(delete);
+        table.close();
+    }
 }
