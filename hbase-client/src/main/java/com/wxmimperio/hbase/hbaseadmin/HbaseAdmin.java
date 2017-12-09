@@ -92,4 +92,13 @@ public class HbaseAdmin {
             System.out.println("value:" + new String(CellUtil.cloneValue(cell)) + " ");
         }
     }
+
+    public void getData(String tableName, String rowKey, String columnName, String qulifier) throws IOException {
+        Table table = connection.getTable(TableName.valueOf(tableName));
+        Get get = new Get(rowKey.getBytes());
+        get.addColumn(columnName.getBytes(), qulifier.getBytes());
+        Result result = table.get(get);
+        showCell(result);
+        table.close();
+    }
 }

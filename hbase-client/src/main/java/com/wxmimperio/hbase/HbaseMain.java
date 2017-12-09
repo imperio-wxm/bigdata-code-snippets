@@ -17,6 +17,7 @@ public class HbaseMain {
                 hbaseAdmin.insterRow("test_table_1207", "rw" + i, "cf1", "q" + i, "val_q" + i);
                 //hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
                 hbaseAdmin.scanData("test_table_1207", "rw1", "rw10");
+                hbaseAdmin.getData("test_table_1207", "rw1", "cf1", "q1");
             }
             hbaseAdmin.close();
         } catch (Exception e) {

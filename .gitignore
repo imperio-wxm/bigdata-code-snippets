@@ -14,3 +14,7 @@ hs_err_pid*
 /hadoop-sequenceFile/target
 /hadoop-sequenceFile/logs
 /hadoop-sequenceFile/hadoop-sequenceFile.iml
+
+hbase-client/\.idea/
+
+hbase-client/hbase-client\.iml
