@@ -1,5 +1,6 @@
 package com.wxmimperio.hbase.hbaseadmin;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
@@ -9,8 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 public class HbaseAdmin {
@@ -58,6 +58,26 @@ public class HbaseAdmin {
             }
             admin.createTable(hTableDescriptor);
         }
+    }
+
+    public void insertJsonRow(String tableName, String rowKey, String colFamily, List<JsonObject> jsonDatas) throws IOException {
+        Table table = connection.getTable(TableName.valueOf(tableName));
+        table.put(getPutListByJson(rowKey, jsonDatas));
+        table.close();
+    }
+
+    private List<Put> getPutListByJson(String rowKey, List<JsonObject> jsonDatas) {
+        List<Put> putList = new ArrayList<Put>();
+        for (JsonObject jsonData : jsonDatas) {
+            Iterator<Map.Entry<String, JsonElement>> jsonIterator = jsonData.entrySet().iterator();
+            while (jsonIterator.hasNext()) {
+                Put put = new Put(Bytes.toBytes(rowKey));
+                Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
+                put.addColumn(Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
+                putList.add(put);
+            }
+        }
+        return putList;
     }
 
     public void insterRow(String tableName, String rowKey, String colFamily, String col, String val) throws IOException {
