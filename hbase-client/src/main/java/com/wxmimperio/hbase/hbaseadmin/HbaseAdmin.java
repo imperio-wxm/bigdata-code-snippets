@@ -1,5 +1,6 @@
 package com.wxmimperio.hbase.hbaseadmin;
 
+import com.google.gson.JsonObject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
@@ -15,10 +16,8 @@ import java.util.List;
 public class HbaseAdmin {
     private static Logger LOG = LoggerFactory.getLogger(HbaseAdmin.class);
 
-    private static Connection connection;
-    private static Admin admin;
-    private static String HBASE_SITE = "hbase-site.xml";
-
+    public static Connection connection;
+    public static Admin admin;
 
     public HbaseAdmin() {
         initHbase();
@@ -26,9 +25,8 @@ public class HbaseAdmin {
 
     private void initHbase() {
         Configuration configuration = HBaseConfiguration.create();
-        configuration.addResource(HBASE_SITE);
-        /*configuration.set("hbase.zookeeper.quorum", "");
-        configuration.set("hbase.zookeeper.property.clientPort", "2181");*/
+        configuration.set("hbase.zookeeper.quorum", "");
+        configuration.set("hbase.zookeeper.property.clientPort", "2181");
         try {
             connection = ConnectionFactory.createConnection(configuration);
             admin = connection.getAdmin();
@@ -76,6 +74,8 @@ public class HbaseAdmin {
     public void scanData(String tableName, String startRow, String stopRow) throws IOException {
         Table table = connection.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
+        System.out.println("startRow = " + startRow);
+        System.out.println("stopRow = " + stopRow);
         scan.setStartRow(Bytes.toBytes(startRow));
         scan.setStopRow(Bytes.toBytes(stopRow));
         ResultScanner resultScanner = table.getScanner(scan);
@@ -86,42 +86,14 @@ public class HbaseAdmin {
     }
 
     private void showCell(Result result) {
+        JsonObject jsonObject = new JsonObject();
         Cell[] cells = result.rawCells();
         for (Cell cell : cells) {
             System.out.println("RowName:" + new String(CellUtil.cloneRow(cell)) + " ");
             System.out.println("Timetamp:" + cell.getTimestamp() + " ");
             System.out.println("column Family:" + new String(CellUtil.cloneFamily(cell)) + " ");
-            System.out.println("row Name:" + new String(CellUtil.cloneQualifier(cell)) + " ");
-            System.out.println("value:" + new String(CellUtil.cloneValue(cell)) + " ");
+            jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
-    }
-
-    public void getData(String tableName, String rowKey, String columnName, String qulifier) throws IOException {
-        Table table = connection.getTable(TableName.valueOf(tableName));
-        Get get = new Get(rowKey.getBytes());
-        get.addColumn(columnName.getBytes(), qulifier.getBytes());
-        Result result = table.get(get);
-        showCell(result);
-        table.close();
-    }
-
-    public void deleteCell(String tableName, String rowKey, String columnName, String qulifier) throws IOException {
-        Table table = connection.getTable(TableName.valueOf(tableName));
-        Delete delete = new Delete(rowKey.getBytes());
-        delete.addColumn(columnName.getBytes(), qulifier.getBytes());
-        table.delete(delete);
-        table.close();
-    }
-
-    public boolean deleteTable(String tableName) throws IOException {
-        TableName hbaseTable = TableName.valueOf(tableName);
-        // disable table
-        admin.disableTable(hbaseTable);
-        // delete table
-        admin.deleteTable(hbaseTable);
-        if (admin.tableExists(hbaseTable)) {
-            return false;
-        }
-        return true;
+        System.out.println(jsonObject.toString());
     }
 }
