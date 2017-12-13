@@ -25,9 +25,7 @@ public class HbaseMapReduce {
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
             // process data for the row from the Result instance.
-            for (Cell cell : value.rawCells()) {
-                context.write(new ImmutableBytesWritable(), new Text(getJsonCell(cell).toString()));
-            }
+            context.write(new ImmutableBytesWritable("key".getBytes()), new Text(getJsonCell(value).toString()));
         }
     }
 
@@ -83,9 +81,11 @@ public class HbaseMapReduce {
         }
     }
 
-    public static JsonObject getJsonCell(Cell cell) {
+    public static JsonObject getJsonCell(Result value) {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+        for (Cell cell : value.rawCells()) {
+            jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+        }
         return jsonObject;
     }
 }
