@@ -68,6 +68,10 @@ public class HbaseAdmin {
         table.close();
     }
 
+    public static Table getTable(String tableName) throws IOException {
+        return connection.getTable(TableName.valueOf(tableName));
+    }
+
     public static String getTableRegionLocation(String tableName, String rowKey) throws IOException {
         Address regionServerAddress = connection.getRegionLocator(TableName.valueOf(tableName))
                 .getRegionLocation(rowKey.getBytes()).getServerName().getAddress();

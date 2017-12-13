@@ -53,8 +53,8 @@ public class HbaseMapReduce {
         config.set("hbase.zookeeper.quorum", "");
         config.set("hbase.zookeeper.property.clientPort", "2181");
         config.set("htable.name", tableName);
-        config.set("region.scan.start", "1513131122697");
-        config.set("region.scan.stop", "1513131122845");
+        config.set("region.scan.start", "1513157422510");
+        config.set("region.scan.stop", "1513157422664");
 
         Job job = new Job(config, "HBaseMapReduceRead");
         job.setJarByClass(HbaseMapReduce.class);
@@ -62,11 +62,11 @@ public class HbaseMapReduce {
         String startRow = "1513131122697_";
         String stopRow = "1513131122845_";
         Scan scan = new Scan();
-        /*scan.setCaching(500);
+        scan.setCaching(500);
         scan.setCacheBlocks(false);
-        scan.setStartRow(Bytes.toBytes(startRow));
+       /* scan.setStartRow(Bytes.toBytes(startRow));
         scan.setStopRow(Bytes.toBytes(stopRow));*/
-
+        HTableInputFormat.configureSplitTable(job, TableName.valueOf(tableName));
         TableMapReduceUtil.initTableMapperJob(
                 tableName,
                 scan,
@@ -74,7 +74,6 @@ public class HbaseMapReduce {
                 null,
                 null,
                 job);
-        HTableInputFormat.configureSplitTable(job, TableName.valueOf(tableName));
 
 
         //job.setOutputFormatClass(NullOutputFormat.class);
@@ -96,6 +95,7 @@ public class HbaseMapReduce {
     public static JsonObject getJsonCell(Result value) {
         JsonObject jsonObject = new JsonObject();
         for (Cell cell : value.rawCells()) {
+            jsonObject.addProperty("Rowkey", new String(CellUtil.cloneRow(cell)));
             jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
         return jsonObject;
