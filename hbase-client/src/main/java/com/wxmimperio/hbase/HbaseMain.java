@@ -28,9 +28,9 @@ public class HbaseMain {
 
                 //hbaseAdmin.insterRow("test_table_1207", rowKey, "cf1", "area_id_" + i, "mid_" + i);
                 //hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
-                hbaseAdmin.insertJsonRow("test_table_1207", rowKey, "cf1", jsonObjects);
+                //hbaseAdmin.insertJsonRow("test_table_1207", rowKey, "cf1", jsonObjects);
             }
-            //hbaseAdmin.scanData("test_table_1207", "1513076148015_", "1513076148131_");
+            hbaseAdmin.scanData("test_table_1207", "1513131122697_", "1513131122826_");
             hbaseAdmin.close();
         } catch (Exception e) {
             LOG.error("error.", e);

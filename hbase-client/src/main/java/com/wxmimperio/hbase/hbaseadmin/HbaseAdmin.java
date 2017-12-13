@@ -6,6 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.mapred.InputSplit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,18 +63,18 @@ public class HbaseAdmin {
 
     public void insertJsonRow(String tableName, String rowKey, String colFamily, List<JsonObject> jsonDatas) throws IOException {
         Table table = connection.getTable(TableName.valueOf(tableName));
-        table.put(getPutListByJson(rowKey, jsonDatas));
+        table.put(getPutListByJson(rowKey, colFamily, jsonDatas));
         table.close();
     }
 
-    private List<Put> getPutListByJson(String rowKey, List<JsonObject> jsonDatas) {
+    private List<Put> getPutListByJson(String rowKey, String colFamily, List<JsonObject> jsonDatas) {
         List<Put> putList = new ArrayList<Put>();
         for (JsonObject jsonData : jsonDatas) {
             Iterator<Map.Entry<String, JsonElement>> jsonIterator = jsonData.entrySet().iterator();
             while (jsonIterator.hasNext()) {
                 Put put = new Put(Bytes.toBytes(rowKey));
                 Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
-                put.addColumn(Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
+                put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
                 putList.add(put);
             }
         }
@@ -94,24 +95,27 @@ public class HbaseAdmin {
     public void scanData(String tableName, String startRow, String stopRow) throws IOException {
         Table table = connection.getTable(TableName.valueOf(tableName));
         Scan scan = new Scan();
-        System.out.println("startRow = " + startRow);
-        System.out.println("stopRow = " + stopRow);
+        /*System.out.println("startRow = " + startRow);
+        System.out.println("stopRow = " + stopRow);*/
         scan.setStartRow(Bytes.toBytes(startRow));
         scan.setStopRow(Bytes.toBytes(stopRow));
         ResultScanner resultScanner = table.getScanner(scan);
+        int i = 0;
         for (Result result : resultScanner) {
             showCell(result);
+            i++;
         }
+        System.out.println("all size = " + i);
         table.close();
     }
 
-    private void showCell(Result result) {
+    public static void showCell(Result result) {
         JsonObject jsonObject = new JsonObject();
         Cell[] cells = result.rawCells();
         for (Cell cell : cells) {
-            System.out.println("RowName:" + new String(CellUtil.cloneRow(cell)) + " ");
-            System.out.println("Timetamp:" + cell.getTimestamp() + " ");
-            System.out.println("column Family:" + new String(CellUtil.cloneFamily(cell)) + " ");
+            //System.out.println("RowName:" + new String(CellUtil.cloneFamily(cell)) + " ");
+            /*System.out.println("Timetamp:" + cell.getTimestamp() + " ");
+            System.out.println("column Family:" + new String(CellUtil.cloneFamily(cell)) + " ");*/
             jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
         System.out.println(jsonObject.toString());
