@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.net.Address;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapred.InputSplit;
 import org.slf4j.Logger;
@@ -65,6 +66,12 @@ public class HbaseAdmin {
         Table table = connection.getTable(TableName.valueOf(tableName));
         table.put(getPutListByJson(rowKey, colFamily, jsonDatas));
         table.close();
+    }
+
+    public static String getTableRegionLocation(String tableName, String rowKey) throws IOException {
+        Address regionServerAddress = connection.getRegionLocator(TableName.valueOf(tableName))
+                .getRegionLocation(rowKey.getBytes()).getServerName().getAddress();
+        return regionServerAddress.getHostname();
     }
 
     private List<Put> getPutListByJson(String rowKey, String colFamily, List<JsonObject> jsonDatas) {

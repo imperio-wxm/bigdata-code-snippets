@@ -52,7 +52,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.wxmimperio.hbase.HbaseMapReduce</mainClass>
+                                    <mainClass>com.wxmimperio.hbase.HbaseMain</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

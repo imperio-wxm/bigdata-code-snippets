@@ -6,9 +6,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
+import org.apache.hadoop.hbase.mapreduce.TableInputFormatBase;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableMapper;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -16,11 +19,15 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 import java.io.IOException;
 
 public class HbaseMapReduce {
+    private static Logger LOG = LoggerFactory.getLogger(HbaseMapReduce.class);
+
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
@@ -32,8 +39,7 @@ public class HbaseMapReduce {
     public static class HbaseReduce extends Reducer<ImmutableBytesWritable, Text, Text, Text> {
 
         @Override
-        protected void reduce(ImmutableBytesWritable key, Iterable<Text> values, Context context)
-                throws IOException, InterruptedException {
+        protected void reduce(ImmutableBytesWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             for (Text text : values) {
                 context.write(new Text(), text);
             }
@@ -46,6 +52,9 @@ public class HbaseMapReduce {
         Configuration config = HBaseConfiguration.create();
         config.set("hbase.zookeeper.quorum", "");
         config.set("hbase.zookeeper.property.clientPort", "2181");
+        config.set("htable.name", tableName);
+        config.set("region.scan.start", "1513131122697");
+        config.set("region.scan.stop", "1513131122845");
 
         Job job = new Job(config, "HBaseMapReduceRead");
         job.setJarByClass(HbaseMapReduce.class);
@@ -53,10 +62,10 @@ public class HbaseMapReduce {
         String startRow = "1513131122697_";
         String stopRow = "1513131122845_";
         Scan scan = new Scan();
-        scan.setCaching(500);
+        /*scan.setCaching(500);
         scan.setCacheBlocks(false);
         scan.setStartRow(Bytes.toBytes(startRow));
-        scan.setStopRow(Bytes.toBytes(stopRow));
+        scan.setStopRow(Bytes.toBytes(stopRow));*/
 
         TableMapReduceUtil.initTableMapperJob(
                 tableName,
@@ -65,6 +74,9 @@ public class HbaseMapReduce {
                 null,
                 null,
                 job);
+        HTableInputFormat.configureSplitTable(job, TableName.valueOf(tableName));
+
+
         //job.setOutputFormatClass(NullOutputFormat.class);
 
         job.setMapOutputKeyClass(ImmutableBytesWritable.class);
@@ -73,7 +85,7 @@ public class HbaseMapReduce {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setNumReduceTasks(1);
-        FileOutputFormat.setOutputPath(job, new Path("/wxm/hbase_test/result.txt"));
+        FileOutputFormat.setOutputPath(job, new Path("/wxm/hbase_test"));
 
         boolean b = job.waitForCompletion(true);
         if (!b) {
@@ -88,4 +100,5 @@ public class HbaseMapReduce {
         }
         return jsonObject;
     }
+
 }

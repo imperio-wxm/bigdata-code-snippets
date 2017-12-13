@@ -3,6 +3,7 @@ package com.wxmimperio.hbase;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wxmimperio.hbase.hbaseadmin.HbaseAdmin;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,15 +23,17 @@ public class HbaseMain {
             hbaseAdmin.createTable("test_table_1207", new String[]{"cf1", "cf2"});
             for (int i = 1; i <= 10; i++) {
                 UUID uuid = UUID.randomUUID();
-                String rowKey = String.valueOf(System.currentTimeMillis()) + "_" + uuid.toString().substring(0, 8);
+                String logicalKey = String.valueOf(System.currentTimeMillis()) + "|" + uuid.toString().substring(0, 8);
+                String rowKey = StringUtils.leftPad(Integer.toString(Math.abs(logicalKey.hashCode() % 1000)), 3, "0") + "|" + logicalKey;
+
                 List<JsonObject> jsonObjects = new ArrayList<JsonObject>();
                 jsonObjects.add(new JsonParser().parse("{\"name\":\"wxm" + i + "\",\"age\":25" + i + "}").getAsJsonObject());
 
                 //hbaseAdmin.insterRow("test_table_1207", rowKey, "cf1", "area_id_" + i, "mid_" + i);
                 //hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
-                //hbaseAdmin.insertJsonRow("test_table_1207", rowKey, "cf1", jsonObjects);
+                hbaseAdmin.insertJsonRow("test_table_1207", rowKey, "cf1", jsonObjects);
             }
-            hbaseAdmin.scanData("test_table_1207", "1513131122697_", "1513131122826_");
+            //hbaseAdmin.scanData("test_table_1207", "1513131122697_", "1513131122826_");
             hbaseAdmin.close();
         } catch (Exception e) {
             LOG.error("error.", e);
