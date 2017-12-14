@@ -3,10 +3,7 @@ package com.wxmimperio.hbase;
 import com.google.gson.JsonObject;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
@@ -48,13 +45,15 @@ public class HbaseMapReduce {
 
 
     public static void main(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-        String tableName = "test_table_1207";
+        String tableName = "test_table_1214";
         Configuration config = HBaseConfiguration.create();
         config.set("hbase.zookeeper.quorum", "");
         config.set("hbase.zookeeper.property.clientPort", "2181");
         config.set("htable.name", tableName);
-        config.set("region.scan.start", "1513157422510");
-        config.set("region.scan.stop", "1513157422664");
+        config.set("logical.scan.start", "1513250180083");
+        config.set("logical.scan.stop", "1513250180222");
+        config.set("start.null.slat", "0");
+        config.set("end.null.slat", "10");
 
         Job job = new Job(config, "HBaseMapReduceRead");
         job.setJarByClass(HbaseMapReduce.class);
@@ -64,9 +63,10 @@ public class HbaseMapReduce {
         Scan scan = new Scan();
         scan.setCaching(500);
         scan.setCacheBlocks(false);
-       /* scan.setStartRow(Bytes.toBytes(startRow));
-        scan.setStopRow(Bytes.toBytes(stopRow));*/
-        HTableInputFormat.configureSplitTable(job, TableName.valueOf(tableName));
+        /*scan.setStartRow(Bytes.toBytes("200"));
+        scan.setStopRow(Bytes.toBytes("300"));*/
+        //HTableInputFormat.configureSplitTable(job, TableName.valueOf(tableName));
+
         TableMapReduceUtil.initTableMapperJob(
                 tableName,
                 scan,
@@ -75,15 +75,14 @@ public class HbaseMapReduce {
                 null,
                 job);
 
-
-        //job.setOutputFormatClass(NullOutputFormat.class);
-
+        job.setInputFormatClass(HTableInputFormat3.class);
         job.setMapOutputKeyClass(ImmutableBytesWritable.class);
         job.setMapOutputValueClass(Text.class);
         job.setReducerClass(HbaseReduce.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         job.setNumReduceTasks(1);
+
         FileOutputFormat.setOutputPath(job, new Path("/wxm/hbase_test"));
 
         boolean b = job.waitForCompletion(true);

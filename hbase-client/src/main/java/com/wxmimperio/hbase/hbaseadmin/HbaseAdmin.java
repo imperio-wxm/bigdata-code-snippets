@@ -48,7 +48,7 @@ public class HbaseAdmin {
         }
     }
 
-    public void createTable(String tableName, String[] cols) throws IOException {
+    public void createTable(String tableName, String[] cols, byte[][] splitKeys) throws IOException {
         TableName hbaseTable = TableName.valueOf(tableName);
         if (admin.tableExists(hbaseTable)) {
             LOG.info("talbe is exists!");
@@ -58,7 +58,11 @@ public class HbaseAdmin {
                 HColumnDescriptor hColumnDescriptor = new HColumnDescriptor(col);
                 hTableDescriptor.addFamily(hColumnDescriptor);
             }
-            admin.createTable(hTableDescriptor);
+            if (splitKeys.length == 0) {
+                admin.createTable(hTableDescriptor);
+            } else {
+                admin.createTable(hTableDescriptor, splitKeys);
+            }
         }
     }
 
