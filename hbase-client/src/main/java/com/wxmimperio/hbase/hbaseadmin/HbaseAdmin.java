@@ -51,7 +51,7 @@ public class HbaseAdmin {
     public void createTable(String tableName, String[] cols, byte[][] splitKeys) throws IOException {
         TableName hbaseTable = TableName.valueOf(tableName);
         if (admin.tableExists(hbaseTable)) {
-            LOG.info("talbe is exists!");
+            LOG.info("Table " + tableName + " exists!");
         } else {
             HTableDescriptor hTableDescriptor = new HTableDescriptor(hbaseTable);
             for (String col : cols) {

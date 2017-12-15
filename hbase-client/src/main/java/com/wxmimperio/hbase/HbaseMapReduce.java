@@ -22,7 +22,6 @@ import java.io.IOException;
 public class HbaseMapReduce {
     private static Logger LOG = LoggerFactory.getLogger(HbaseMapReduce.class);
 
-
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
             // process data for the row from the Result instance.
@@ -51,12 +50,11 @@ public class HbaseMapReduce {
         config.set("logical.scan.stop", "1513250180222");
         config.set("start.null.slat", "0");
         config.set("end.null.slat", "10");
+        LOG.info("Config = " + config);
 
         Job job = new Job(config, "HBaseMapReduceRead");
         job.setJarByClass(HbaseMapReduce.class);
 
-        String startRow = "1513131122697_";
-        String stopRow = "1513131122845_";
         Scan scan = new Scan();
         scan.setCaching(500);
         scan.setCacheBlocks(false);
