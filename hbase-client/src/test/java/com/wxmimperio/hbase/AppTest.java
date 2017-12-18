@@ -3,9 +3,11 @@ package com.wxmimperio.hbase;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hbase.util.Bytes;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -19,20 +21,23 @@ public class AppTest {
         Arrays.sort(demos);
         System.out.println(Arrays.asList(demos));
 
-        UUID uuid = UUID.randomUUID();
-        String logicalKey = "2017-12-13 12:00:00" + "|" + uuid.toString().substring(0, 8);
-        //String rowKey = StringUtils.leftPad(Integer.toString(Math.abs(logicalKey.hashCode() % 1000)), 3, "0") + "|" + logicalKey;
-
-        String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 1000)).substring(0, 1) + "|" + logicalKey;
+        for (int i = 0; i < 30; i++) {
 
 
-        System.out.println(rowKey);
+            UUID uuid = UUID.randomUUID();
+            String logicalKey = System.currentTimeMillis() + "|" + uuid.toString().substring(0, 8);
+            //String rowKey = StringUtils.leftPad(Integer.toString(Math.abs(logicalKey.hashCode() % 1000)), 3, "0") + "|" + logicalKey;
+
+            String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)) + "|" + logicalKey;
+
+
+            System.out.println(rowKey);
+        }
 
         String start = new String("0");
         String end = "100";
 
         System.out.println(Integer.parseInt(end) + Integer.parseInt(start));
-
     }
 
 
@@ -54,5 +59,34 @@ public class AppTest {
 
         System.out.println(startRegionSalt);
         System.out.println(endRegionSalt);
+
+        System.out.println(encodeHexStr(15, "1|1513564850774|dbb17da1"));
+    }
+
+    public static String encodeHexStr(int dataCoding, String realStr) {
+        String hexStr = null;
+        if (realStr != null) {
+            try {
+                if (dataCoding == 15) {
+                    hexStr = new String(Hex.encodeHex(realStr.getBytes("UTF-8")));
+                } else if ((dataCoding & 0x0C) == 0x08) {
+                    hexStr = new String(Hex.encodeHex(realStr.getBytes("UnicodeBigUnmarked")));
+                } else {
+                    hexStr = new String(Hex.encodeHex(realStr.getBytes("ISO8859-1")));
+                }
+            } catch (UnsupportedEncodingException e) {
+                System.out.println(e.toString());
+            }
+        }
+        return hexStr;
+    }
+
+    public static String hexString2String(String src) {
+        String temp = "";
+        for (int i = 0; i < src.length() / 2; i++) {
+            temp = temp + (char) Integer.valueOf(src.substring(i * 2, i * 2 + 2),
+                    16).byteValue();
+        }
+        return temp;
     }
 }

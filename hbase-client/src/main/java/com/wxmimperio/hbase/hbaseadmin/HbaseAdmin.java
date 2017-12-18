@@ -26,15 +26,29 @@ public class HbaseAdmin {
     }
 
     private void initHbase() {
+        connection = getConnection();
+        admin = getAdmin(connection);
+    }
+
+    private synchronized Connection getConnection() {
         Configuration configuration = HBaseConfiguration.create();
         configuration.set("hbase.zookeeper.quorum", "");
         configuration.set("hbase.zookeeper.property.clientPort", "2181");
         try {
             connection = ConnectionFactory.createConnection(configuration);
-            admin = connection.getAdmin();
         } catch (IOException e) {
             LOG.error("Get hbase connect error !", e);
         }
+        return connection;
+    }
+
+    private synchronized Admin getAdmin(Connection connection) {
+        try {
+            return connection.getAdmin();
+        } catch (IOException e) {
+            LOG.error("Get hbase admin error !", e);
+        }
+        return null;
     }
 
     public void close() {
