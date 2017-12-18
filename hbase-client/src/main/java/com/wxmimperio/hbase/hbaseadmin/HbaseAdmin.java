@@ -80,6 +80,31 @@ public class HbaseAdmin {
         }
     }
 
+    public long batchAsyncPut(String tableName, String rowKey, String colFamily, List<JsonObject> puts) throws Exception {
+        long currentTime = System.currentTimeMillis();
+        Connection conn = getConnection();
+        final BufferedMutator.ExceptionListener listener = new BufferedMutator.ExceptionListener() {
+            @Override
+            public void onException(RetriesExhaustedWithDetailsException e, BufferedMutator mutator) {
+                for (int i = 0; i < e.getNumExceptions(); i++) {
+                    System.out.println("Failed to sent put " + e.getRow(i) + ".");
+                }
+            }
+        };
+        BufferedMutatorParams params = new BufferedMutatorParams(TableName.valueOf(tableName))
+                .listener(listener);
+        params.writeBufferSize(5 * 1024 * 1024);
+
+        final BufferedMutator mutator = conn.getBufferedMutator(params);
+        try {
+            mutator.mutate(getMutationListByJson(rowKey, colFamily, puts));
+            mutator.flush();
+        } finally {
+            mutator.close();
+        }
+        return System.currentTimeMillis() - currentTime;
+    }
+
     public void insertJsonRow(String tableName, String rowKey, String colFamily, List<JsonObject> jsonDatas) throws IOException {
         Table table = connection.getTable(TableName.valueOf(tableName));
         table.put(getPutListByJson(rowKey, colFamily, jsonDatas));
@@ -94,6 +119,20 @@ public class HbaseAdmin {
         Address regionServerAddress = connection.getRegionLocator(TableName.valueOf(tableName))
                 .getRegionLocation(rowKey.getBytes()).getServerName().getAddress();
         return regionServerAddress.getHostname();
+    }
+
+    private List<Mutation> getMutationListByJson(String rowKey, String colFamily, List<JsonObject> jsonDatas) {
+        List<Mutation> putList = new ArrayList<Mutation>();
+        for (JsonObject jsonData : jsonDatas) {
+            Iterator<Map.Entry<String, JsonElement>> jsonIterator = jsonData.entrySet().iterator();
+            while (jsonIterator.hasNext()) {
+                Put put = new Put(Bytes.toBytes(rowKey));
+                Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
+                put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
+                putList.add(put);
+            }
+        }
+        return putList;
     }
 
     private List<Put> getPutListByJson(String rowKey, String colFamily, List<JsonObject> jsonDatas) {
