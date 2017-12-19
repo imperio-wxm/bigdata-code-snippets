@@ -2,7 +2,8 @@ package com.wxmimperio.hbase.hbasemr;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.wxmimperio.hbase.utils.HiveUtils;
+import com.wxmimperio.hbase.pojo.HDFSFile;
+import com.wxmimperio.hbase.utils.HiveUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.Cell;
@@ -31,22 +32,16 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
+
 
 public class HBaseToOrcTimestamp {
     private static Logger LOG = LoggerFactory.getLogger(HBaseToOrcTimestamp.class);
 
     private static String HBASE_SITE = "hbaes-site.xml";
     private static String HIVE_DB_LOCATION = "hive.db.location";
-    private static String EMPTY = new String("");
+    public static String EMPTY = new String("");
 
-    public static final ThreadLocal<SimpleDateFormat> eventTomeFormat = new ThreadLocal<SimpleDateFormat>() {
-        @Override
-        protected SimpleDateFormat initialValue() {
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        }
-    };
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
@@ -71,9 +66,9 @@ public class HBaseToOrcTimestamp {
                 JsonObject jsonData = new JsonParser().parse(text.toString()).getAsJsonObject();
                 for (StructField structField : fields) {
                     if (jsonData.has(structField.getFieldName())) {
-                        HiveUtils.formatFieldValue(inspector, structField, orcStruct, jsonData.get(structField.getFieldName()).getAsString());
+                        HiveUtil.formatFieldValue(inspector, structField, orcStruct, jsonData.get(structField.getFieldName()).getAsString());
                     } else {
-                        HiveUtils.formatFieldValue(inspector, structField, orcStruct, EMPTY);
+                        HiveUtil.formatFieldValue(inspector, structField, orcStruct, EMPTY);
                     }
                 }
                 this.row = orcSerde.serialize(orcStruct, inspector);
@@ -82,20 +77,26 @@ public class HBaseToOrcTimestamp {
         }
     }
 
-    private static void runHBaseToOrc(String tableName, long startTimestamp, long endTimestamp, String outputPath) throws Exception {
+    private static void runHBaseToOrc(String tableName, String partDate, String endTimestamp, String step) throws Exception {
         Configuration config = HBaseConfiguration.create();
-        StructTypeInfo schema = HiveUtils.getColumnTypeDescs("dw", tableName);
+        StructTypeInfo schema = HiveUtil.getColumnTypeDescs("dw", tableName);
+        config.addResource(HBASE_SITE);
         config.set("schema", schema.getTypeName());
         config.set("orc.compress", "SNAPPY");
+        config.set("mapreduce.output.basename", "orc");
 
-        config.addResource(HBASE_SITE);
+        HDFSFile hdfsFile = new HDFSFile(tableName, partDate, config.get("hive.db.location"), endTimestamp, step);
+
         Job job = new Job(config, "HBaseToOrc");
         job.setJarByClass(HBaseToOrcTimestamp.class);
 
         Scan scan = new Scan();
         scan.setCaching(500);
         scan.setCacheBlocks(false);
-        scan.setTimeRange(startTimestamp, endTimestamp);
+        scan.setTimeRange(
+                Long.parseLong(hdfsFile.getStartTimestamp()),
+                Long.parseLong(hdfsFile.getEndTimestamp())
+        );
         scan.setMaxVersions(1);
 
         TableMapReduceUtil.initTableMapperJob(
@@ -115,7 +116,7 @@ public class HBaseToOrcTimestamp {
         job.setOutputFormatClass(OrcNewOutputFormat.class);
         job.setNumReduceTasks(1);
 
-        FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        FileOutputFormat.setOutputPath(job, new Path(hdfsFile.getTempPath()));
 
         boolean b = job.waitForCompletion(true);
         if (!b) {
@@ -125,71 +126,17 @@ public class HBaseToOrcTimestamp {
 
 
     public static void main(String[] args) throws Exception {
-        Configuration config = HBaseConfiguration.create();
-        config.addResource(HBASE_SITE);
-
-        String tableName = args[0];
-        long startTimestamp = Long.parseLong(args[1]);
-        long endTimestamp = Long.parseLong(args[2]);
-        String outputPath = args[3];
-
-        runHBaseToOrc(tableName, startTimestamp, endTimestamp, outputPath);
-
-        /*if (args.length != 4) {
-            LOG.info("Params are not right.");
-            System.exit(0);
+        //String tableName, String partDate, String fileLocation, String endTimestamp, String step
+        if (args.length != 4) {
+            LOG.info("Usage: <tableName> <partDate> <endTime> <step>");
+            System.exit(2);
         }
-
         String tableName = args[0];
         String partDate = args[1];
-        // 数据偏移（hour为单位）
-        String step = args[2];
-        String endTime = args[3];
-        long startTimestamp = getStartTimestamp(endTime, step);
-        String fileLocation = config.get(HIVE_DB_LOCATION);
-        String fileName = getFileName(tableName, String.valueOf(startTimestamp), endTime);
-        LOG.info("Config = " + config);
+        String endTimestamp = args[2];
+        String step = args[3];
 
-        Job job = new Job(config, "HBaseMapReduceRead");
-        job.setJarByClass(HbaseMapReduce.class);
-
-        Scan scan = new Scan();
-        scan.setCaching(500);
-        scan.setCacheBlocks(false);
-        scan.setTimeRange(getStartTimestamp(endTime, step), getTimestamp(endTime));
-        scan.setMaxVersions(1);
-
-        TableMapReduceUtil.initTableMapperJob(
-                tableName,
-                scan,
-                HBaseMapper.class,
-                null,
-                null,
-                job);
-
-        job.setMapOutputKeyClass(ImmutableBytesWritable.class);
-        job.setMapOutputValueClass(Text.class);
-        job.setReducerClass(HBaseReduce.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(Text.class);
-        job.setNumReduceTasks(1);
-        FileOutputFormat.setOutputPath(job, new Path(getFilePath(tableName, partDate, fileLocation, fileName)));
-
-        boolean b = job.waitForCompletion(true);
-        if (!b) {
-            throw new IOException("Error with job!");
-        }*/
-
-       /* String fileNameTemp = getFileName("test_table", String.valueOf(getStartTimestamp("2017-12-19 15:59:00", "-1")), "2017-12-19 15:59:00");
-        System.out.println(getFilePath("test_table", "2017-12-19", config.get(HIVE_DB_LOCATION), fileNameTemp));
-
-        List<String> deleteFileNames = getDeleteFileName("test_table", String.valueOf(getStartTimestamp("2017-12-19 15:59:00", "-1")), "2017-12-19 15:59:00");
-
-        for (String fileName : deleteFileNames) {
-            //HDFSUtils.deleteFile(fileName);
-            String deletePath = getFilePath("test_table", "2017-12-19", config.get(HIVE_DB_LOCATION), fileName);
-            System.out.println(deletePath);
-        }*/
+        runHBaseToOrc(tableName, partDate, endTimestamp, step);
     }
 
     public static JsonObject getJsonCell(Result value) {
@@ -201,79 +148,17 @@ public class HBaseToOrcTimestamp {
         return jsonObject;
     }
 
-    private static String getFilePath(String tableName, String partDate, String fileLocation, String fileName) throws ParseException {
-        StringBuilder filePath = new StringBuilder();
-        filePath.append(fileLocation)
-                .append(tableName)
-                .append("/part_date=")
-                .append(partDate)
-                .append("/")
-                .append(fileName);
-        return filePath.toString();
-    }
 
     private static List<String> getDeleteFileName(String tableName, String startTimestamp, String endTimestamp) throws ParseException {
         List<String> fileNameList = new ArrayList<String>();
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date(Long.parseLong(startTimestamp)));
         int startHour = calendar.get(Calendar.HOUR_OF_DAY);
-        calendar.setTime(eventTomeFormat.get().parse(endTimestamp));
+        calendar.setTime(HiveUtil.eventTomeFormat.get().parse(endTimestamp));
         int endHour = calendar.get(Calendar.HOUR_OF_DAY);
         for (int i = 0; i < (endHour - startHour); i++) {
-            fileNameList.add(tableName + "_" + addZero(startHour + i, 2) + "*");
+            fileNameList.add(tableName + "_" + HiveUtil.addZero(startHour + i, 2) + "*");
         }
         return fileNameList;
-    }
-
-    /**
-     * get file name, like test_table_11_12_1513664756483
-     *
-     * @param tableName
-     * @param startTimestamp
-     * @param endTimestamp
-     * @return
-     * @throws ParseException
-     */
-    private static String getFileName(String tableName, String startTimestamp, String endTimestamp) throws ParseException {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date(Long.parseLong(startTimestamp)));
-        String startHour = addZero(calendar.get(Calendar.HOUR_OF_DAY), 2);
-        calendar.setTime(eventTomeFormat.get().parse(endTimestamp));
-        String endHour = addZero(calendar.get(Calendar.HOUR_OF_DAY), 2);
-        return tableName + "_" + startHour + "_" + endHour + "_" + System.currentTimeMillis();
-    }
-
-    /**
-     * get start timestamp by endTimestamp and step
-     *
-     * @param endTimestamp
-     * @param step
-     * @return
-     * @throws ParseException
-     */
-    private static long getStartTimestamp(String endTimestamp, String step) throws ParseException {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(eventTomeFormat.get().parse(endTimestamp));
-        calendar.add(Calendar.HOUR_OF_DAY, Integer.parseInt(step));
-        return calendar.getTime().getTime();
-    }
-
-    private static long getTimestamp(String time) throws ParseException {
-        return eventTomeFormat.get().parse(time).getTime();
-    }
-
-    private static int getHour(String time) throws ParseException {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(eventTomeFormat.get().parse(time));
-        return calendar.get(Calendar.HOUR_OF_DAY);
-    }
-
-    public static String addZero(int num, int len) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(num);
-        while (stringBuilder.length() < len) {
-            stringBuilder.insert(0, "0");
-        }
-        return stringBuilder.toString();
     }
 }
