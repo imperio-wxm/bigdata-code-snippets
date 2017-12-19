@@ -76,49 +76,14 @@ public class HBaseToOrcSplit {
                 LOG.info("message = " + jsonData.toString());
                 for (StructField structField : fields) {
                     if (jsonData.has(structField.getFieldName())) {
-                        setFieldValue(inspector, structField, orcStruct, jsonData.get(structField.getFieldName()).getAsString());
+                        HiveUtils.formatFieldValue(inspector, structField, orcStruct, jsonData.get(structField.getFieldName()).getAsString());
                     } else {
-                        setFieldValue(inspector, structField, orcStruct, EMPTY);
+                        HiveUtils.formatFieldValue(inspector, structField, orcStruct, EMPTY);
                     }
                 }
                 this.row = orcSerde.serialize(orcStruct, inspector);
                 context.write(NullWritable.get(), this.row);
             }
-        }
-
-        private void setFieldValue(SettableStructObjectInspector oi, StructField sf, OrcStruct orcStruct, String val) {
-            WritableComparable wc = null;
-            try {
-                switch (sf.getFieldObjectInspector().getTypeName().toLowerCase()) {
-                    case "string":
-                    case "varchar":
-                        wc = new Text(val);
-                        break;
-                    case "bigint":
-                        wc = new LongWritable(Long.valueOf(val));
-                        break;
-                    case "int":
-                        wc = new IntWritable(Integer.valueOf(val));
-                        break;
-                    case "boolean":
-                        wc = new BooleanWritable(Boolean.valueOf(val));
-                        break;
-                    case "smallint":
-                        wc = new ShortWritable(Short.valueOf(val));
-                        break;
-                    case "float":
-                        wc = new FloatWritable(Float.valueOf(val));
-                        break;
-                    case "double":
-                        wc = new DoubleWritable(Double.valueOf(val));
-                        break;
-                    default:
-                        break;
-                }
-            } catch (NumberFormatException e) {
-                wc = null;
-            }
-            oi.setStructFieldData(orcStruct, sf, wc);
         }
     }
 
