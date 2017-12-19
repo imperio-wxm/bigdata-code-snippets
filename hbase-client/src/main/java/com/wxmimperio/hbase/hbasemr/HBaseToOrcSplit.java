@@ -17,13 +17,15 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.dc.pr.PRError;
 
 import java.io.IOException;
+import java.io.PipedReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class HBaseToOrcSplit {
     private static Logger LOG = LoggerFactory.getLogger(HBaseToOrcSplit.class);
@@ -57,7 +59,7 @@ public class HBaseToOrcSplit {
         Configuration config = HBaseConfiguration.create();
         config.addResource(HBASE_SITE);
 
-        if (args.length != 4) {
+        /*if (args.length != 4) {
             LOG.info("Params are not right.");
             System.exit(0);
         }
@@ -100,11 +102,16 @@ public class HBaseToOrcSplit {
         boolean b = job.waitForCompletion(true);
         if (!b) {
             throw new IOException("Error with job!");
-        }
+        }*/
 
-        System.out.println(getHour("2017-12-19 11:59:00"));
-        String fileNameTemp = getFileName("test_table", "2017-12-19 11:59:00", "2017-12-19 15:59:00");
+        String fileNameTemp = getFileName("test_table", String.valueOf(getStartTimestamp("2017-12-19 15:59:00", "-10")), "2017-12-19 15:59:00");
         System.out.println(getFilePath("test_table", "2017-12-19", config.get(HIVE_DB_LOCATION), fileNameTemp));
+
+        List<String> deleteFileNames = getDeleteFileName("test_table", String.valueOf(getStartTimestamp("2017-12-19 15:59:00", "-10")), "2017-12-19 15:59:00");
+
+        for (String fileName : deleteFileNames) {
+            System.out.println(getFilePath("test_table", "2017-12-19", config.get(HIVE_DB_LOCATION), fileName));
+        }
     }
 
     public static JsonObject getJsonCell(Result value) {
@@ -127,12 +134,25 @@ public class HBaseToOrcSplit {
         return filePath.toString();
     }
 
-    private static String getFileName(String tableName, String startTime, String endTimestamp) throws ParseException {
+    private static List<String> getDeleteFileName(String tableName, String startTimestamp, String endTimestamp) throws ParseException {
+        List<String> fileNameList = new ArrayList<String>();
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(eventTomeFormat.get().parse(startTime));
+        calendar.setTime(new Date(Long.parseLong(startTimestamp)));
         int startHour = calendar.get(Calendar.HOUR_OF_DAY);
         calendar.setTime(eventTomeFormat.get().parse(endTimestamp));
         int endHour = calendar.get(Calendar.HOUR_OF_DAY);
+        for (int i = 0; i < (endHour - startHour); i++) {
+            fileNameList.add(tableName + "_" + addZero(startHour + i, 2) + "*");
+        }
+        return fileNameList;
+    }
+
+    private static String getFileName(String tableName, String startTimestamp, String endTimestamp) throws ParseException {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date(Long.parseLong(startTimestamp)));
+        String startHour = addZero(calendar.get(Calendar.HOUR_OF_DAY), 2);
+        calendar.setTime(eventTomeFormat.get().parse(endTimestamp));
+        String endHour = addZero(calendar.get(Calendar.HOUR_OF_DAY), 2);
         return tableName + "_" + startHour + "_" + endHour + "_" + System.currentTimeMillis();
     }
 
@@ -151,5 +171,14 @@ public class HBaseToOrcSplit {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(eventTomeFormat.get().parse(time));
         return calendar.get(Calendar.HOUR_OF_DAY);
+    }
+
+    public static String addZero(int num, int len) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(num);
+        while (stringBuilder.length() < len) {
+            stringBuilder.insert(0, "0");
+        }
+        return stringBuilder.toString();
     }
 }
