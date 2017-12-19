@@ -8,9 +8,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class HbaseMain {
     private static Logger LOG = LoggerFactory.getLogger(HbaseMain.class);
@@ -26,6 +24,8 @@ public class HbaseMain {
                 Bytes.toBytes("7"), Bytes.toBytes("8"),
                 Bytes.toBytes("9")};
 
+        List<Map<String, JsonObject>> jsonList = new ArrayList<Map<String, JsonObject>>();
+
         HbaseAdmin hbaseAdmin = new HbaseAdmin();
         try {
             hbaseAdmin.createTable("test_table_1214", new String[]{"cf1", "cf2"}, splitKeys);
@@ -40,8 +40,18 @@ public class HbaseMain {
 
                 //hbaseAdmin.insterRow("test_table_1207", rowKey, "cf1", "area_id_" + i, "mid_" + i);
                 //hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
-                hbaseAdmin.insertJsonRow("test_table_1214", rowKey, "cf1", jsonObjects);
+                //hbaseAdmin.insertJsonRow("test_table_1214", rowKey, "cf1", jsonObjects);
+
+                Map<String, JsonObject> jsonMap = new HashMap<String, JsonObject>();
+                jsonMap.put(rowKey, new JsonParser().parse("{\"name\":\"wxm" + i + "\",\"age\":25" + i + "}").getAsJsonObject());
+                jsonList.add(jsonMap);
             }
+            hbaseAdmin.insertJsonRow("test_table_1214", "cf1", jsonList);
+            hbaseAdmin.insertJsonRow("test_table_1214", "cf1", jsonList);
+            hbaseAdmin.insertJsonRow("test_table_1214", "cf1", jsonList);
+            //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);
+            //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);
+            //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);
             //hbaseAdmin.scanData("test_table_1207", "1513131122697_", "1513131122826_");
             hbaseAdmin.close();
         } catch (Exception e) {

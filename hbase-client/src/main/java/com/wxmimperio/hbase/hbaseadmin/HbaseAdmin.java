@@ -18,8 +18,9 @@ import java.util.*;
 public class HbaseAdmin {
     private static Logger LOG = LoggerFactory.getLogger(HbaseAdmin.class);
 
-    public static Connection connection;
-    public static Admin admin;
+    private static Connection connection;
+    private static Admin admin;
+    private String HBASE_SITE = "hbaes-site.xml";
 
     public HbaseAdmin() {
         initHbase();
@@ -32,8 +33,7 @@ public class HbaseAdmin {
 
     private synchronized Connection getConnection() {
         Configuration configuration = HBaseConfiguration.create();
-        configuration.set("hbase.zookeeper.quorum", "");
-        configuration.set("hbase.zookeeper.property.clientPort", "2181");
+        configuration.addResource(HBASE_SITE);
         try {
             connection = ConnectionFactory.createConnection(configuration);
         } catch (IOException e) {
@@ -80,14 +80,14 @@ public class HbaseAdmin {
         }
     }
 
-    public long batchAsyncPut(String tableName, String rowKey, String colFamily, List<JsonObject> puts) throws Exception {
+    public long batchAsyncPut(String tableName, String colFamily, List<Map<String, JsonObject>> puts) throws Exception {
         long currentTime = System.currentTimeMillis();
         Connection conn = getConnection();
         final BufferedMutator.ExceptionListener listener = new BufferedMutator.ExceptionListener() {
             @Override
             public void onException(RetriesExhaustedWithDetailsException e, BufferedMutator mutator) {
                 for (int i = 0; i < e.getNumExceptions(); i++) {
-                    System.out.println("Failed to sent put " + e.getRow(i) + ".");
+                    LOG.info("Failed to sent put " + e.getRow(i) + ".");
                 }
             }
         };
@@ -97,7 +97,7 @@ public class HbaseAdmin {
 
         final BufferedMutator mutator = conn.getBufferedMutator(params);
         try {
-            mutator.mutate(getMutationListByJson(rowKey, colFamily, puts));
+            mutator.mutate(getMutationListByJson(colFamily, puts));
             mutator.flush();
         } finally {
             mutator.close();
@@ -105,9 +105,9 @@ public class HbaseAdmin {
         return System.currentTimeMillis() - currentTime;
     }
 
-    public void insertJsonRow(String tableName, String rowKey, String colFamily, List<JsonObject> jsonDatas) throws IOException {
+    public void insertJsonRow(String tableName, String colFamily, List<Map<String, JsonObject>> jsonDatas) throws IOException {
         Table table = connection.getTable(TableName.valueOf(tableName));
-        table.put(getPutListByJson(rowKey, colFamily, jsonDatas));
+        table.put(getPutListByJson(colFamily, jsonDatas));
         table.close();
     }
 
@@ -121,29 +121,42 @@ public class HbaseAdmin {
         return regionServerAddress.getHostname();
     }
 
-    private List<Mutation> getMutationListByJson(String rowKey, String colFamily, List<JsonObject> jsonDatas) {
+    /**
+     * @param colFamily
+     * @param jsonDatas
+     * @return
+     */
+    private List<Mutation> getMutationListByJson(String colFamily, List<Map<String, JsonObject>> jsonDatas) {
         List<Mutation> putList = new ArrayList<Mutation>();
-        for (JsonObject jsonData : jsonDatas) {
-            Iterator<Map.Entry<String, JsonElement>> jsonIterator = jsonData.entrySet().iterator();
-            while (jsonIterator.hasNext()) {
-                Put put = new Put(Bytes.toBytes(rowKey));
-                Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
-                put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
-                putList.add(put);
+        for (Map<String, JsonObject> jsonMaps : jsonDatas) {
+            for (Map.Entry<String, JsonObject> jsonMap : jsonMaps.entrySet()) {
+                String rowKey = jsonMap.getKey();
+                JsonObject data = jsonMap.getValue();
+                Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
+                while (jsonIterator.hasNext()) {
+                    Put put = new Put(Bytes.toBytes(rowKey));
+                    Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
+                    put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
+                    putList.add(put);
+                }
             }
         }
         return putList;
     }
 
-    private List<Put> getPutListByJson(String rowKey, String colFamily, List<JsonObject> jsonDatas) {
+    private List<Put> getPutListByJson(String colFamily, List<Map<String, JsonObject>> jsonDatas) {
         List<Put> putList = new ArrayList<Put>();
-        for (JsonObject jsonData : jsonDatas) {
-            Iterator<Map.Entry<String, JsonElement>> jsonIterator = jsonData.entrySet().iterator();
-            while (jsonIterator.hasNext()) {
-                Put put = new Put(Bytes.toBytes(rowKey));
-                Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
-                put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
-                putList.add(put);
+        for (Map<String, JsonObject> jsonMaps : jsonDatas) {
+            for (Map.Entry<String, JsonObject> jsonMap : jsonMaps.entrySet()) {
+                String rowKey = jsonMap.getKey();
+                JsonObject data = jsonMap.getValue();
+                Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
+                while (jsonIterator.hasNext()) {
+                    Put put = new Put(Bytes.toBytes(rowKey));
+                    Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
+                    put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
+                    putList.add(put);
+                }
             }
         }
         return putList;
