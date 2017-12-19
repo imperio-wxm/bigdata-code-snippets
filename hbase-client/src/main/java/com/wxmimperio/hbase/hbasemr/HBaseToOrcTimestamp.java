@@ -3,6 +3,7 @@ package com.wxmimperio.hbase.hbasemr;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wxmimperio.hbase.pojo.HDFSFile;
+import com.wxmimperio.hbase.utils.HDFSUtil;
 import com.wxmimperio.hbase.utils.HiveUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -86,6 +87,9 @@ public class HBaseToOrcTimestamp {
         config.set("mapreduce.output.basename", "orc");
 
         HDFSFile hdfsFile = new HDFSFile(tableName, partDate, config.get("hive.db.location"), endTimestamp, step);
+        LOG.info(hdfsFile.toString());
+
+        // TODO 每次重跑要删除real相应的文件
 
         Job job = new Job(config, "HBaseToOrc");
         job.setJarByClass(HBaseToOrcTimestamp.class);
@@ -122,6 +126,14 @@ public class HBaseToOrcTimestamp {
         if (!b) {
             throw new IOException("Error with job!");
         }
+
+        // move tempPath to realPath
+        if (HDFSUtil.isFileClosed(hdfsFile.getMvPath())) {
+            HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
+        }
+
+        // clear tempPath
+        HDFSUtil.deleteFile(hdfsFile.getTempPath());
     }
 
 
