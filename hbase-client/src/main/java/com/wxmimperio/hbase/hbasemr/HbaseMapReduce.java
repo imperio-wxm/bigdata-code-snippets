@@ -1,6 +1,7 @@
-package com.wxmimperio.hbase;
+package com.wxmimperio.hbase.hbasemr;
 
 import com.google.gson.JsonObject;
+import com.wxmimperio.hbase.HTableInputFormat;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
