@@ -100,23 +100,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-hdfs</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>${hadoop.scope}</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-mapreduce-client-core</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>${hadoop.scope}</scope>
-        </dependency>
-        <dependency>
             <groupId>com.hadoop.lzo</groupId>
             <artifactId>hadoop-lzo</artifactId>
             <version>0.4.15</version>
@@ -129,6 +112,7 @@
             <version>${hive.version}</version>
             <scope>${hive.scope}</scope>
         </dependency>
+
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
