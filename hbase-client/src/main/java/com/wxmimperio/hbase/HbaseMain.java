@@ -47,8 +47,6 @@ public class HbaseMain {
                 jsonList.add(jsonMap);
             }
             hbaseAdmin.insertJsonRow("test_table_1214", "cf1", jsonList);
-            hbaseAdmin.insertJsonRow("test_table_1214", "cf1", jsonList);
-            hbaseAdmin.insertJsonRow("test_table_1214", "cf1", jsonList);
             //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);
             //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);
             //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);

@@ -2,16 +2,17 @@ package com.wxmimperio.hbase.hbaseadmin;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.wxmimperio.hbase.utils.HiveUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.net.Address;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.mapred.InputSplit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.*;
 
 
@@ -20,7 +21,7 @@ public class HbaseAdmin {
 
     private static Connection connection;
     private static Admin admin;
-    private String HBASE_SITE = "hbaes-site.xml";
+    private static String HBASE_SITE = "hbaes-site.xml";
 
     public HbaseAdmin() {
         initHbase();
@@ -31,9 +32,10 @@ public class HbaseAdmin {
         admin = getAdmin(connection);
     }
 
-    private synchronized Connection getConnection() {
+    private synchronized static Connection getConnection() {
         Configuration configuration = HBaseConfiguration.create();
         configuration.addResource(HBASE_SITE);
+        configuration.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
         try {
             connection = ConnectionFactory.createConnection(configuration);
         } catch (IOException e) {
@@ -105,7 +107,7 @@ public class HbaseAdmin {
         return System.currentTimeMillis() - currentTime;
     }
 
-    public void insertJsonRow(String tableName, String colFamily, List<Map<String, JsonObject>> jsonDatas) throws IOException {
+    public void insertJsonRow(String tableName, String colFamily, List<Map<String, JsonObject>> jsonDatas) throws Exception {
         Table table = connection.getTable(TableName.valueOf(tableName));
         table.put(getPutListByJson(colFamily, jsonDatas));
         table.close();
@@ -144,22 +146,40 @@ public class HbaseAdmin {
         return putList;
     }
 
-    private List<Put> getPutListByJson(String colFamily, List<Map<String, JsonObject>> jsonDatas) {
+    private List<Put> getPutListByJson(String colFamily, List<Map<String, JsonObject>> jsonDatas) throws ParseException {
         List<Put> putList = new ArrayList<Put>();
         for (Map<String, JsonObject> jsonMaps : jsonDatas) {
             for (Map.Entry<String, JsonObject> jsonMap : jsonMaps.entrySet()) {
                 String rowKey = jsonMap.getKey();
                 JsonObject data = jsonMap.getValue();
+
+                long eventTimestamp = System.currentTimeMillis();
+                if (data.has("event_time")) {
+                    eventTimestamp = HiveUtil.eventTomeFormat.get().parse(
+                            data.get("event_time").getAsString()
+                    ).getTime();
+                } else {
+                    LOG.info("This message can not get event_time = " + data.toString());
+                }
+
                 Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
                 while (jsonIterator.hasNext()) {
-                    Put put = new Put(Bytes.toBytes(rowKey));
                     Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
+                    Put put = new Put(Bytes.toBytes(rowKey), eventTimestamp);
                     put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
                     putList.add(put);
                 }
             }
         }
         return putList;
+    }
+
+    public static void main(String[] args) throws Exception {
+        for (int i = 0; i < 100; i++) {
+            String logicalKey = UUID.randomUUID().toString().substring(0, 8);
+            String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + "|" + logicalKey;
+            System.out.println(rowKey);
+        }
     }
 
     public void insterRow(String tableName, String rowKey, String colFamily, String col, String val) throws IOException {

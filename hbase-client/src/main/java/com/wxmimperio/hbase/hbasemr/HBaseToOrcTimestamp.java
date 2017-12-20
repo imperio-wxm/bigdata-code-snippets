@@ -7,8 +7,6 @@ import com.wxmimperio.hbase.utils.HDFSUtil;
 import com.wxmimperio.hbase.utils.HiveUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hbase.Cell;
-import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
@@ -32,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.*;
 
 
@@ -40,13 +37,11 @@ public class HBaseToOrcTimestamp {
     private static Logger LOG = LoggerFactory.getLogger(HBaseToOrcTimestamp.class);
 
     private static String HBASE_SITE = "hbaes-site.xml";
-    private static String HIVE_DB_LOCATION = "hive.db.location";
     public static String EMPTY = new String("");
-
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
-            context.write(new ImmutableBytesWritable("key".getBytes()), new Text(getJsonCell(value).toString()));
+            context.write(new ImmutableBytesWritable("key".getBytes()), new Text(HiveUtil.getJsonCell(value).toString()));
         }
     }
 
@@ -91,14 +86,11 @@ public class HBaseToOrcTimestamp {
 
         // add partition
         HiveUtil.addPartition("dw", tableName, partDate);
-
-        // TODO 每次重跑要删除real相应的文件
+        // delete exists file
         List<String> files = HDFSUtil.getFileList(hdfsFile.getTempPath().replaceAll("/orc_temp", ""));
         List<String> deleteFilesName = HiveUtil.getDeleteFileName(hdfsFile.getTableName(), hdfsFile.getStartTimestamp(), hdfsFile.getEndTimestamp());
-
-        LOG.info(files.toString());
-        LOG.info(deleteFilesName.toString());
-
+        LOG.info("Exist files = " + files.toString());
+        LOG.info("Should be deleted files name = " + deleteFilesName.toString());
         for (String file : files) {
             for (String deleteName : deleteFilesName) {
                 if (file.contains(deleteName)) {
@@ -106,9 +98,6 @@ public class HBaseToOrcTimestamp {
                 }
             }
         }
-
-        Job job = new Job(config, "HBaseToOrc=" + hdfsFile.getRealPath());
-        job.setJarByClass(HBaseToOrcTimestamp.class);
 
         Scan scan = new Scan();
         scan.setCaching(500);
@@ -119,6 +108,8 @@ public class HBaseToOrcTimestamp {
         );
         scan.setMaxVersions(1);
 
+        Job job = new Job(config, "HBaseToOrc=" + hdfsFile.getRealPath());
+        job.setJarByClass(HBaseToOrcTimestamp.class);
         TableMapReduceUtil.initTableMapperJob(
                 tableName,
                 scan,
@@ -126,7 +117,6 @@ public class HBaseToOrcTimestamp {
                 null,
                 null,
                 job);
-
         job.setMapOutputKeyClass(ImmutableBytesWritable.class);
         job.setMapOutputValueClass(Text.class);
         job.setReducerClass(HBaseReduce.class);
@@ -148,11 +138,9 @@ public class HBaseToOrcTimestamp {
             HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
         }*/
         HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
-
         // clear tempPath
         HDFSUtil.deleteFile(hdfsFile.getTempPath());
     }
-
 
     public static void main(String[] args) throws Exception {
         //String tableName, String partDate, String fileLocation, String endTimestamp, String step
@@ -166,16 +154,5 @@ public class HBaseToOrcTimestamp {
         String step = args[3];
 
         runHBaseToOrc(tableName, partDate, endTimestamp, step);
-
-        // args[0] = "/user/hive/warehouse/dw.db/test_table_1214/part_date=2017-12-19";
-    }
-
-    public static JsonObject getJsonCell(Result value) {
-        JsonObject jsonObject = new JsonObject();
-        for (Cell cell : value.rawCells()) {
-            jsonObject.addProperty("Rowkey", new String(CellUtil.cloneRow(cell)));
-            jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
-        }
-        return jsonObject;
     }
 }
