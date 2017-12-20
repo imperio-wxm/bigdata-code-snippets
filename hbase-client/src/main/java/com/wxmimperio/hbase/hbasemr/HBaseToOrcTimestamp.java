@@ -89,9 +89,25 @@ public class HBaseToOrcTimestamp {
         HDFSFile hdfsFile = new HDFSFile(tableName, partDate, config.get("hive.db.location"), endTimestamp, step);
         LOG.info(hdfsFile.toString());
 
-        // TODO 每次重跑要删除real相应的文件
+        // add partition
+        HiveUtil.addPartition("dw", tableName, partDate);
 
-        Job job = new Job(config, "HBaseToOrc");
+        // TODO 每次重跑要删除real相应的文件
+        List<String> files = HDFSUtil.getFileList(hdfsFile.getTempPath().replaceAll("/orc_temp", ""));
+        List<String> deleteFilesName = HiveUtil.getDeleteFileName(hdfsFile.getTableName(), hdfsFile.getStartTimestamp(), hdfsFile.getEndTimestamp());
+
+        LOG.info(files.toString());
+        LOG.info(deleteFilesName.toString());
+
+        for (String file : files) {
+            for (String deleteName : deleteFilesName) {
+                if (file.contains(deleteName)) {
+                    HDFSUtil.deleteFile(file);
+                }
+            }
+        }
+
+        Job job = new Job(config, "HBaseToOrc=" + hdfsFile.getRealPath());
         job.setJarByClass(HBaseToOrcTimestamp.class);
 
         Scan scan = new Scan();
@@ -128,9 +144,10 @@ public class HBaseToOrcTimestamp {
         }
 
         // move tempPath to realPath
-        if (HDFSUtil.isFileClosed(hdfsFile.getMvPath())) {
+        /*if (HDFSUtil.isFileClosed(hdfsFile.getMvPath())) {
             HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
-        }
+        }*/
+        HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
 
         // clear tempPath
         HDFSUtil.deleteFile(hdfsFile.getTempPath());
@@ -149,6 +166,8 @@ public class HBaseToOrcTimestamp {
         String step = args[3];
 
         runHBaseToOrc(tableName, partDate, endTimestamp, step);
+
+        // args[0] = "/user/hive/warehouse/dw.db/test_table_1214/part_date=2017-12-19";
     }
 
     public static JsonObject getJsonCell(Result value) {
@@ -158,19 +177,5 @@ public class HBaseToOrcTimestamp {
             jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
         return jsonObject;
-    }
-
-
-    private static List<String> getDeleteFileName(String tableName, String startTimestamp, String endTimestamp) throws ParseException {
-        List<String> fileNameList = new ArrayList<String>();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date(Long.parseLong(startTimestamp)));
-        int startHour = calendar.get(Calendar.HOUR_OF_DAY);
-        calendar.setTime(HiveUtil.eventTomeFormat.get().parse(endTimestamp));
-        int endHour = calendar.get(Calendar.HOUR_OF_DAY);
-        for (int i = 0; i < (endHour - startHour); i++) {
-            fileNameList.add(tableName + "_" + HiveUtil.addZero(startHour + i, 2) + "*");
-        }
-        return fileNameList;
     }
 }
