@@ -93,7 +93,7 @@ public class HBaseToOrcTimestamp {
         LOG.info("Should be deleted files name = " + deleteFilesName.toString());
         for (String file : files) {
             for (String deleteName : deleteFilesName) {
-                if (file.contains(deleteName)) {
+                if (file.contains(deleteName) && HDFSUtil.isFileClosed(file)) {
                     HDFSUtil.deleteFile(file);
                 }
             }
@@ -127,17 +127,15 @@ public class HBaseToOrcTimestamp {
         job.setNumReduceTasks(1);
 
         FileOutputFormat.setOutputPath(job, new Path(hdfsFile.getTempPath()));
-
         boolean b = job.waitForCompletion(true);
         if (!b) {
             throw new IOException("Error with job!");
         }
 
         // move tempPath to realPath
-        /*if (HDFSUtil.isFileClosed(hdfsFile.getMvPath())) {
+        if (HDFSUtil.isFileClosed(hdfsFile.getMvPath())) {
             HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
-        }*/
-        HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
+        }
         // clear tempPath
         HDFSUtil.deleteFile(hdfsFile.getTempPath());
     }
@@ -145,7 +143,7 @@ public class HBaseToOrcTimestamp {
     public static void main(String[] args) throws Exception {
         //String tableName, String partDate, String fileLocation, String endTimestamp, String step
         if (args.length != 4) {
-            LOG.info("Usage: <tableName> <partDate> <endTime> <step>");
+            LOG.info("Usage: <tableName> <partDate> <endTime> <step/s>");
             System.exit(2);
         }
         String tableName = args[0];

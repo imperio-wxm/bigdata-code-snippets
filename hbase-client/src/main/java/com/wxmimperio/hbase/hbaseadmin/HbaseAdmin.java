@@ -107,7 +107,7 @@ public class HbaseAdmin {
         return System.currentTimeMillis() - currentTime;
     }
 
-    public void insertJsonRow(String tableName, String colFamily, List<Map<String, JsonObject>> jsonDatas) throws Exception {
+    public void insertJsonRow(String tableName, String colFamily, List<JsonObject> jsonDatas) throws Exception {
         Table table = connection.getTable(TableName.valueOf(tableName));
         table.put(getPutListByJson(colFamily, jsonDatas));
         table.close();
@@ -146,29 +146,27 @@ public class HbaseAdmin {
         return putList;
     }
 
-    private List<Put> getPutListByJson(String colFamily, List<Map<String, JsonObject>> jsonDatas) throws ParseException {
+    private List<Put> getPutListByJson(String colFamily, List<JsonObject> jsonDatas) throws ParseException {
         List<Put> putList = new ArrayList<Put>();
-        for (Map<String, JsonObject> jsonMaps : jsonDatas) {
-            for (Map.Entry<String, JsonObject> jsonMap : jsonMaps.entrySet()) {
-                String rowKey = jsonMap.getKey();
-                JsonObject data = jsonMap.getValue();
+        for (JsonObject data : jsonDatas) {
+            long eventTimestamp = System.currentTimeMillis();
+            if (data.has("event_time")) {
+                eventTimestamp = HiveUtil.eventTomeFormat.get().parse(
+                        data.get("event_time").getAsString()
+                ).getTime();
+            } else {
+                LOG.info("This message can not get event_time = " + data.toString());
+            }
+            String logicalKey = UUID.randomUUID().toString().substring(0, 8) + String.valueOf(eventTimestamp).substring(6, 10);
+            String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + "|" + logicalKey;
 
-                long eventTimestamp = System.currentTimeMillis();
-                if (data.has("event_time")) {
-                    eventTimestamp = HiveUtil.eventTomeFormat.get().parse(
-                            data.get("event_time").getAsString()
-                    ).getTime();
-                } else {
-                    LOG.info("This message can not get event_time = " + data.toString());
-                }
-
-                Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
-                while (jsonIterator.hasNext()) {
-                    Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
-                    Put put = new Put(Bytes.toBytes(rowKey), eventTimestamp);
-                    put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
-                    putList.add(put);
-                }
+            Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
+            while (jsonIterator.hasNext()) {
+                Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
+                Put put = new Put(Bytes.toBytes(rowKey), eventTimestamp);
+                put.setTTL(60 * 1000L * 60 * 24 * 7);
+                put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
+                putList.add(put);
             }
         }
         return putList;
