@@ -40,9 +40,10 @@ public class HBaseToOrc {
 
     private static String HBASE_SITE = "hbaes-site.xml";
     public static String EMPTY = new String("");
+    private static String DEFAULT = "default";
     private static String TYPE_TIMESTAMP = "timestamp";
     private static String TYPE_ROWKEY = "rowkey";
-    private static String TYPE_ROWKEY_TIMESTAMP = "timestamp";
+    private static String TYPE_ROWKEY_TIMESTAMP = "rowkey_timestamp";
     private final static List<String> scanType = new ArrayList<String>(Arrays.asList(TYPE_TIMESTAMP, TYPE_ROWKEY, TYPE_ROWKEY_TIMESTAMP));
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
@@ -88,10 +89,26 @@ public class HBaseToOrc {
         String scanType = args[0];
         String tableName = args[1];
         String partDate = args[2];
-        String startRowKey = args[3];
-        String endRowKey = args[4];
-        String endTimestamp = args[3];
-        String step = args[4];
+        String startRowKey;
+        String endRowKey;
+        String endTimestamp;
+        String step;
+
+        if (scanType.equalsIgnoreCase(TYPE_ROWKEY)) {
+            startRowKey = args[3];
+            endRowKey = args[4];
+            endTimestamp = HiveUtil.eventTomeFormat.get().format(new Date());
+            step = "0";
+        } else {
+            startRowKey = DEFAULT;
+            endRowKey = DEFAULT;
+            endTimestamp = args[3];
+            step = args[4];
+        }
+
+        LOG.info("scanType=" + scanType + ", tableName=" + tableName +
+                ", partDate=" + partDate + ", startRowKey=" + startRowKey +
+                ", endRowKey=" + endRowKey + ", endTimestamp=" + endTimestamp + ", step=" + step);
 
         Configuration config = HBaseConfiguration.create();
         StructTypeInfo schema = HiveUtil.getColumnTypeDescs("dw", tableName);
@@ -99,9 +116,10 @@ public class HBaseToOrc {
         config.set("schema", schema.getTypeName());
         config.set("orc.compress", "SNAPPY");
         config.set("mapreduce.output.basename", "orc");
-
         HDFSFile hdfsFile = new HDFSFile(tableName, partDate, config.get("hive.db.location"), endTimestamp, step);
         LOG.info(hdfsFile.toString());
+        config.set("logical.scan.start", hdfsFile.getStartTimestamp());
+        config.set("logical.scan.stop", hdfsFile.getEndTimestamp());
 
         // add partition
         HiveUtil.addPartition("dw", tableName, partDate);
@@ -149,12 +167,7 @@ public class HBaseToOrc {
         OrcNewOutputFormat.setOutputCompressorClass(job, SnappyCodec.class);
         job.setOutputFormatClass(OrcNewOutputFormat.class);
         job.setNumReduceTasks(1);
-
         if (scanType.equalsIgnoreCase(TYPE_ROWKEY_TIMESTAMP)) {
-            config.set("logical.scan.start", hdfsFile.getStartTimestamp());
-            config.set("logical.scan.stop", hdfsFile.getEndTimestamp());
-            config.set("start.null.slat", "0");
-            config.set("end.null.slat", "10");
             job.setInputFormatClass(HTableInputFormat.class);
         }
 
@@ -176,8 +189,8 @@ public class HBaseToOrc {
     public static void main(String[] args) throws Exception {
         if (args.length != 5) {
             LOG.info("Params length error!" + Arrays.asList(args));
-            LOG.info("Use: <scanType:rowKey> <tableName> <parDate> <startRowKey> <endRowKey>");
-            LOG.info("Use: <scanType:rowKey_timestamp or timestamp> <tableName> <parDate> <endTimestamp> <step>");
+            LOG.info("Use: <scanType:rowkey> <tableName> <parDate> <startRowKey> <endRowKey>");
+            LOG.info("Use: <scanType:rowkey_timestamp or timestamp> <tableName> <parDate> <endTimestamp> <step>");
             System.exit(2);
         }
         LOG.info("Params = " + Arrays.asList(args));

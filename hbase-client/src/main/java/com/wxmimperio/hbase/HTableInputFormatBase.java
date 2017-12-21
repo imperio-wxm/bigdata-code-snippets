@@ -220,7 +220,6 @@ public abstract class HTableInputFormatBase
         String scanStart = conf.get("logical.scan.start");
         String scanStop = conf.get("logical.scan.stop");
         String startNullSalt = conf.get("start.null.slat");
-        String endNullSalt = conf.get("end.null.slat");
 
         // Just in case a subclass is relying on JobConfigurable magic.
         if (table == null) {

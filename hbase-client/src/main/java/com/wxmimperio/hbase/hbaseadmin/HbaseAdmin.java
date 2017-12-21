@@ -157,8 +157,17 @@ public class HbaseAdmin {
             } else {
                 LOG.info("This message can not get event_time = " + data.toString());
             }
-            String logicalKey = UUID.randomUUID().toString().substring(0, 8) + String.valueOf(eventTimestamp).substring(6, 10);
+            /*String logicalKey = UUID.randomUUID().toString().substring(0, 8) + String.valueOf(eventTimestamp).substring(6, 10);
+            String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + "|" + logicalKey;*/
+
+            String logicalKey = String.valueOf(System.currentTimeMillis()) + "|" + UUID.randomUUID().toString().substring(0, 8);
             String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + "|" + logicalKey;
+
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
             while (jsonIterator.hasNext()) {
