@@ -35,8 +35,8 @@ import java.io.IOException;
 import java.util.*;
 
 
-public class HBaseToOrcTimestamp {
-    private static Logger LOG = LoggerFactory.getLogger(HBaseToOrcTimestamp.class);
+public class HBaseToOrc {
+    private static Logger LOG = LoggerFactory.getLogger(HBaseToOrc.class);
 
     private static String HBASE_SITE = "hbaes-site.xml";
     public static String EMPTY = new String("");
@@ -133,7 +133,7 @@ public class HBaseToOrcTimestamp {
         scan.setMaxVersions(1);
 
         Job job = new Job(config, "HBaseToOrc=" + hdfsFile.getFileName());
-        job.setJarByClass(HBaseToOrcTimestamp.class);
+        job.setJarByClass(HBaseToOrc.class);
         TableMapReduceUtil.initTableMapperJob(
                 tableName,
                 scan,
