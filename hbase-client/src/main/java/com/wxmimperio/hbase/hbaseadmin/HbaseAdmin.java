@@ -70,6 +70,9 @@ public class HbaseAdmin {
             LOG.info("Table " + tableName + " exists!");
         } else {
             HTableDescriptor hTableDescriptor = new HTableDescriptor(hbaseTable);
+            hTableDescriptor.setValue("key_struct", "{\"COMPRESSION\":\"SNAPPY\",\"VERSIONS\":\"1\"}");
+            //hTableDescriptor.setValue("COMPRESSION","SNAPPY");
+            //hTableDescriptor.setValue("VERSIONS","1");
             for (String col : cols) {
                 HColumnDescriptor hColumnDescriptor = new HColumnDescriptor(col);
                 hTableDescriptor.addFamily(hColumnDescriptor);

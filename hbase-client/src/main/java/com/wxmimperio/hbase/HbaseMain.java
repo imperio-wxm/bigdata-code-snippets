@@ -28,12 +28,15 @@ public class HbaseMain {
 
         HbaseAdmin hbaseAdmin = new HbaseAdmin();
         try {
-            hbaseAdmin.createTable("orc_rowkey_test", new String[]{"cf1", "cf2"}, splitKeys);
+            hbaseAdmin.createTable("test_table_1849", new String[]{"cf1", "cf2"}, splitKeys);
             for (int i = 1; i <= 10; i++) {
                 //hbaseAdmin.insterRow("test_table_1207", rowKey, "cf1", "area_id_" + i, "mid_" + i);
                 //hbaseAdmin.insterRow("test_table_1207", "rw" + i + "_" + i, "cf2", "f" + i, "val_f" + i);
                 //hbaseAdmin.insertJsonRow("test_table_1214", rowKey, "cf1", jsonObjects);
-                jsonList.add(new JsonParser().parse("{\"name\":\"wxm" + i + "\",\"age\":25" + i + "}").getAsJsonObject());
+                //jsonList.add(new JsonParser().parse("{\"name\":\"wxm" + i + "\",\"age\":25" + i + "}").getAsJsonObject());
+
+                jsonList.add(new JsonParser().parse("{\"name\":\"wxm" + i + "\"}").getAsJsonObject());
+
             }
             hbaseAdmin.insertJsonRow("orc_rowkey_test", "cf1", jsonList);
             //hbaseAdmin.batchAsyncPut("test_table_1214", "cf1", jsonList);

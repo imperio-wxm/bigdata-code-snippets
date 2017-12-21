@@ -89,7 +89,7 @@ public class HBaseToOrc {
 
     private static void runHBaseToOrc(String[] args) throws Exception {
         if (!scanType.contains(args[0])) {
-            LOG.info("Scan type mast be in " + scanType);
+            LOG.error("Scan type mast be in " + scanType);
             System.exit(2);
         }
 
@@ -198,9 +198,9 @@ public class HBaseToOrc {
 
     public static void main(String[] args) throws Exception {
         if (args.length != 5) {
-            LOG.info("Params length error!" + Arrays.asList(args));
-            LOG.info("Use: <scanType:rowkey> <tableName> <parDate> <startRowKey> <endRowKey>");
-            LOG.info("Use: <scanType:rowkey_timestamp or timestamp> <tableName> <parDate> <endTimestamp> <step>");
+            LOG.error("Params length error!" + Arrays.asList(args));
+            LOG.error("Use: <scanType:rowkey> <tableName> <parDate> <startRowKey> <endRowKey>");
+            LOG.error("Use: <scanType:rowkey_timestamp or timestamp> <tableName> <parDate> <endTimestamp> <step>");
             System.exit(2);
         }
         LOG.info("Params = " + Arrays.asList(args));
