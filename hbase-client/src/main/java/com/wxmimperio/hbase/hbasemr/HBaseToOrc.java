@@ -25,6 +25,8 @@ import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.compress.SnappyCodec;
+import org.apache.hadoop.mapreduce.Counter;
+import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -45,6 +47,10 @@ public class HBaseToOrc {
     private static String TYPE_ROWKEY = "rowkey";
     private static String TYPE_ROWKEY_TIMESTAMP = "rowkey_timestamp";
     private final static List<String> scanType = new ArrayList<String>(Arrays.asList(TYPE_TIMESTAMP, TYPE_ROWKEY, TYPE_ROWKEY_TIMESTAMP));
+
+    public enum Count {
+        TotalCount
+    }
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
@@ -76,6 +82,7 @@ public class HBaseToOrc {
                 }
                 this.row = orcSerde.serialize(orcStruct, inspector);
                 context.write(NullWritable.get(), this.row);
+                context.getCounter(Count.TotalCount).increment(1);
             }
         }
     }
@@ -98,7 +105,8 @@ public class HBaseToOrc {
             startRowKey = args[3];
             endRowKey = args[4];
             endTimestamp = HiveUtil.eventTomeFormat.get().format(new Date());
-            step = "0";
+            // default one hour
+            step = "-3600";
         } else {
             startRowKey = DEFAULT;
             endRowKey = DEFAULT;
@@ -182,6 +190,10 @@ public class HBaseToOrc {
         }
         // clear tempPath
         HDFSUtil.deleteFile(hdfsFile.getTempPath());
+
+        Counters counters = job.getCounters();
+        Counter counter = counters.findCounter(Count.TotalCount);
+        LOG.info("File " + hdfsFile.getRealPath() + ", TotalCount = " + counter.getValue());
     }
 
     public static void main(String[] args) throws Exception {
