@@ -114,8 +114,6 @@ public class HBaseToOrc {
         StructTypeInfo schema = HiveUtil.getColumnTypeDescs("dw", tableName);
         config.addResource(HBASE_SITE);
         config.set("schema", schema.getTypeName());
-        config.set("orc.compress", "SNAPPY");
-        config.set("mapreduce.output.basename", "orc");
         HDFSFile hdfsFile = new HDFSFile(tableName, partDate, config.get("hive.db.location"), endTimestamp, step);
         LOG.info(hdfsFile.toString());
         config.set("logical.scan.start", hdfsFile.getStartTimestamp());
