@@ -216,7 +216,6 @@ public abstract class HTableInputFormatBase
     @Override
     public List<InputSplit> getSplits(JobContext context) throws IOException {
         boolean closeOnFinish = false;
-
         Configuration conf = context.getConfiguration();
         String scanStart = conf.get("logical.scan.start");
         String scanStop = conf.get("logical.scan.stop");
@@ -308,8 +307,6 @@ public abstract class HTableInputFormatBase
                     TableSplit split = new TableSplit(table.getName(), scan,
                             splitStartKey, splitStopKey, regionLocation, encodedRegionName, regionSize);
 
-                    LOG.info("splitStart ====== " + new String(splitStart, "UTF-8"));
-                    LOG.info("splitStop ====== " + new String(splitStop, "UTF-8"));
                     LOG.info("getSplits: split -> " + i + " -> " + split);
                     splits.add(split);
                     if (LOG.isDebugEnabled()) {
