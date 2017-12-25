@@ -1,5 +1,6 @@
 package com.wxmimperio.hbase.hbaseadmin;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.wxmimperio.hbase.utils.HiveUtil;
@@ -230,5 +231,39 @@ public class HbaseAdmin {
             jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
         System.out.println(jsonObject.toString());
+    }
+
+    public List<JsonObject> getData(String tableName, String rowKey, String family, String qualifier) {
+        Table table = null;
+        List<JsonObject> list = Lists.newArrayList();
+        try {
+            table = getConnection().getTable(TableName.valueOf(tableName));
+            // 通过HBase中的 get来进行查询
+            Get get = new Get(Bytes.toBytes(rowKey));
+            // 如果列族不为空
+            if (null != family && family.length() > 0) {
+                // 如果列不为空
+                if (null != qualifier && qualifier.length() > 0) {
+                    get.addColumn(Bytes.toBytes(family),
+                            Bytes.toBytes(qualifier));
+                } else {
+                    get.addFamily(Bytes.toBytes(family));
+                }
+            }
+            Result result = table.get(get);
+            List<Cell> cs = result.listCells();
+            if (null == cs || cs.size() == 0) {
+                return Lists.newArrayList();
+            }
+            JsonObject jsonObject = new JsonObject();
+            for (Cell cell : cs) {
+                jsonObject.addProperty("rowKey", Bytes.toString(CellUtil.cloneRow(cell)));// 取行健
+                jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+            }
+            list.add(jsonObject);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
