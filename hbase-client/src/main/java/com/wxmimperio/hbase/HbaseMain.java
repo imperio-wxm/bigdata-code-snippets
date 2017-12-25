@@ -1,5 +1,6 @@
 package com.wxmimperio.hbase;
 
+import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wxmimperio.hbase.hbaseadmin.HbaseAdmin;
@@ -45,6 +46,8 @@ public class HbaseMain {
             //hbaseAdmin.scanData("test_table_1207", "1513131122697_", "1513131122826_");
 
             System.out.println(hbaseAdmin.getData("orc_wooolh_money_consume_glog", "0|00000fd82570", null, null));
+            System.out.println(hbaseAdmin.getByKeyList("orc_wooolh_money_consume_glog",
+                    Lists.newArrayList("0|00000fd82570", "0|000003778278"), Lists.newArrayList("event_time"), null, null));
             hbaseAdmin.close();
         } catch (Exception e) {
             LOG.error("error.", e);

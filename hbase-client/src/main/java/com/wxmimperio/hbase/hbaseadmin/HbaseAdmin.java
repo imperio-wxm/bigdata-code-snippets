@@ -7,6 +7,7 @@ import com.wxmimperio.hbase.utils.HiveUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.*;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.io.TimeRange;
 import org.apache.hadoop.hbase.net.Address;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.slf4j.Logger;
@@ -19,6 +20,14 @@ import java.util.*;
 
 public class HbaseAdmin {
     private static Logger LOG = LoggerFactory.getLogger(HbaseAdmin.class);
+
+    private static final long DEFAULT_COUNT_LIMIT = 1000;
+    private static final long DEFAULT_SIZE_LIMIT = 1 * 1000 * 1000;
+
+    protected static final byte[] DEFAULT_COLUMN_FAMILY = "cf1".getBytes();
+
+    private static final long DEFAULT_MIN_TIMESTAMP = 0L;
+    private static final long DEFAULT_MAX_TIMESTAMP = Long.MAX_VALUE;
 
     private static Connection connection;
     private static Admin admin;
@@ -233,6 +242,16 @@ public class HbaseAdmin {
         System.out.println(jsonObject.toString());
     }
 
+    public static JsonObject getJsonCell(Result result) {
+        JsonObject jsonObject = new JsonObject();
+        Cell[] cells = result.rawCells();
+        for (Cell cell : cells) {
+            jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+        }
+        System.out.println(jsonObject.toString());
+        return jsonObject;
+    }
+
     public List<JsonObject> getData(String tableName, String rowKey, String family, String qualifier) {
         Table table = null;
         List<JsonObject> list = Lists.newArrayList();
@@ -265,5 +284,32 @@ public class HbaseAdmin {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public List<JsonObject> getByKeyList(String tableName, final List<String> keyList, final List<String> columns, Long minStamp, Long maxStamp) throws IOException {
+        Table table = null;
+        TimeRange tr = getTimeRange(minStamp, maxStamp);
+        List<JsonObject> list = Lists.newArrayList();
+        List<Get> gets = Lists.newArrayList();
+        table = getConnection().getTable(TableName.valueOf(tableName));
+        for (String key : keyList) {
+            Get get = new Get(key.getBytes()).setTimeRange(tr.getMin(), tr.getMax());
+            for (String column : columns) {
+                get.addColumn(DEFAULT_COLUMN_FAMILY, column.getBytes());
+            }
+            gets.add(get);
+        }
+        for (Result result : table.get(gets)) {
+            JsonObject json = getJsonCell(result);
+            if (json != null) {
+                list.add(json);
+            }
+        }
+        return list;
+    }
+
+    private TimeRange getTimeRange(Long minStamp, Long maxStamp) throws IOException {
+        return new TimeRange(minStamp == null ? DEFAULT_MIN_TIMESTAMP : minStamp,
+                maxStamp == null ? DEFAULT_MAX_TIMESTAMP : maxStamp);
     }
 }
