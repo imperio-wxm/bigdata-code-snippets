@@ -89,4 +89,13 @@ public class AppTest {
         }
         return temp;
     }
+
+    @org.junit.Test
+    public void deleteCharAtTest() {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < 10; i++) {
+            stringBuilder.append(i).append(",");
+        }
+        System.out.println(stringBuilder.deleteCharAt(stringBuilder.length() - 1).toString());
+    }
 }
