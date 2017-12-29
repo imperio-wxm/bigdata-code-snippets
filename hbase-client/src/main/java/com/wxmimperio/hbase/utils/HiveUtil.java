@@ -259,7 +259,7 @@ public class HiveUtil {
         return fileNameList;
     }
 
-    public static JsonObject getJsonCell(Result value) {
+    public static JsonObject convertResultToJson(Result value) {
         JsonObject jsonObject = new JsonObject();
         for (Cell cell : value.rawCells()) {
             jsonObject.addProperty("Rowkey", new String(CellUtil.cloneRow(cell)));
