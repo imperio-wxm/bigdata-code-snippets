@@ -54,7 +54,7 @@ public class HBaseToOrc {
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
-            context.write(new ImmutableBytesWritable("key".getBytes()), new Text(HiveUtil.getJsonCell(value).toString()));
+            context.write(new ImmutableBytesWritable(String.valueOf(value.hashCode()).getBytes()), new Text(HiveUtil.convertResultToJson(value).toString()));
         }
     }
 
@@ -130,6 +130,7 @@ public class HBaseToOrc {
         // add partition
         HiveUtil.addPartition("dw", tableName, partDate);
         // delete exists file
+        HDFSUtil.deleteFile(hdfsFile.getTempPath());
         List<String> files = HDFSUtil.getFileList(hdfsFile.getTempPath().replaceAll("/orc_temp", ""));
         List<String> deleteFilesName = HiveUtil.getDeleteFileName(hdfsFile.getTableName(), hdfsFile.getStartTimestamp(), hdfsFile.getEndTimestamp());
         LOG.info("Exist files = " + files.toString());
@@ -185,8 +186,11 @@ public class HBaseToOrc {
         }
 
         // move tempPath to realPath
-        if (HDFSUtil.isFileClosed(hdfsFile.getMvPath())) {
-            HDFSUtil.renameFile(hdfsFile.getMvPath(), hdfsFile.getRealPath());
+        List<String> tempFiles = HDFSUtil.getFileList(hdfsFile.getTempPath());
+        for (String tempFile : tempFiles) {
+            if (HDFSUtil.isFileClosed(tempFile) && !tempFile.contains("_SUCCESS")) {
+                HDFSUtil.renameFile(tempFile, hdfsFile.getRealPath().substring(0, hdfsFile.getRealPath().length() - 13) + System.currentTimeMillis());
+            }
         }
         // clear tempPath
         HDFSUtil.deleteFile(hdfsFile.getTempPath());
