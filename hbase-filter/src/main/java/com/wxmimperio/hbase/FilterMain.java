@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wxmimperio.hbase.connection.HBaseConnection;
 import com.wxmimperio.hbase.filter.HBaseFilterList;
+import com.wxmimperio.hbase.filter.SingleColumnValueFilterBytes;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 
@@ -54,12 +55,17 @@ public class FilterMain {
         filterOne.put("condition", "9187");
         filterList.add(filterOne);
 
-        Map<String, String> filterTwo = Maps.newHashMap();
+        /*Map<String, String> filterTwo = Maps.newHashMap();
         filterTwo.put("column", "reason");
         filterTwo.put("condition", "行会神技");
-        filterList.add(filterTwo);
+        filterList.add(filterTwo);*/
 
-        scan = HBaseFilterList.FilterLisScan(scan, filterList);
+        // FilterList
+        //scan = HBaseFilterList.FilterLisScan(scan, filterList);
+
+        // SingleColumnValueFilterBytes
+        scan = SingleColumnValueFilterBytes.SingleColumnScan(scan, filterList);
+
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
         for (Result result : resultScanner) {
