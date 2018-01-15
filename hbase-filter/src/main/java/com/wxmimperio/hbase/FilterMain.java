@@ -1,14 +1,10 @@
 package com.wxmimperio.hbase;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.wxmimperio.hbase.connection.HBaseConnection;
 import com.wxmimperio.hbase.filter.*;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 
-import java.util.List;
-import java.util.Map;
 
 public class FilterMain {
 
@@ -86,7 +82,22 @@ public class FilterMain {
         /**
          * QualifierFilter
          */
-        scan = HBaseQualifierFilter.qualifierFilterScan(scan, "publisher_id1");
+        //scan = HBaseQualifierFilter.qualifierFilterScan(scan, "publisher_id1");
+
+        /**
+         * ColumnPrefixFilter
+         */
+        //scan = HBaseColumnPrefixFilter.columnPrefixFilterScan(scan, "publi");
+
+        /**
+         * MultipleColumnPrefixFilter
+         */
+        //scan = HBaseMultipleColumnPrefixFilter.multipleColumnPrefixFilterScan(scan, new byte[][]{"publi".getBytes(), "character".getBytes()});
+
+        /**
+         * ColumnRangeFilter
+         */
+        scan = HBaseColumnRangeFilter.columnRangeFilterScan(scan, "a", "d");
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
