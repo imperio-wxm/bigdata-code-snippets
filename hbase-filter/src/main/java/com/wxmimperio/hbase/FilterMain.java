@@ -4,6 +4,7 @@ import com.wxmimperio.hbase.connection.HBaseConnection;
 import com.wxmimperio.hbase.filter.*;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
+import sun.security.krb5.SCDynamicStoreConfig;
 
 
 public class FilterMain {
@@ -107,7 +108,24 @@ public class FilterMain {
         /**
          * ValueFilter
          */
-        scan = HBaseValueFilter.valueFilterScan(scan,"2017");
+        //scan = HBaseValueFilter.valueFilterScan(scan,"2017");
+
+        /**
+         * DependentColumnFilter
+         */
+        //scan = HBaseDependentColumnFilter.dependentColumnFilterScan(scan, "publisher_id", "9187");
+
+        /**
+         * SingleColumnValueExcludeFilter
+         */
+        //scan = SingleColumnValueExcludeFilterScan.singleColumnValueExcludeFilterScan(scan, "publisher_id", "9187");
+
+        /**
+         * PrefixFilter
+         */
+        //scan = HBasePrefixFilter.prefixFilterScan(scan, "0");
+
+        scan = HBasePageFilter.pageFilterScan(scan, 1L);
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
