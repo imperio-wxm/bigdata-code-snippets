@@ -24,14 +24,16 @@ public class SingleColumnValueFilterBytes {
     public static Scan SingleColumnScan(Scan scan, List<Map<String, String>> colAndCondition) {
 
         for (Map<String, String> map : colAndCondition) {
-            SingleColumnValueFilter scvf = new SingleColumnValueFilter(
-                    Bytes.toBytes(CommonUtils.CF),
-                    Bytes.toBytes(map.get("column")),
-                    CompareFilter.CompareOp.EQUAL,
-                    Bytes.toBytes(map.get("condition"))
-            );
-            scvf.setFilterIfMissing(true); //要过滤的列必须存在，如果不存在，那么这些列不存在的数据也会返回
-            scan.setFilter(scvf);
+            for (Map.Entry<String, String> colAndCond : map.entrySet()) {
+                SingleColumnValueFilter scvf = new SingleColumnValueFilter(
+                        Bytes.toBytes(CommonUtils.CF),
+                        Bytes.toBytes(colAndCond.getKey()),
+                        CompareFilter.CompareOp.EQUAL,
+                        Bytes.toBytes(colAndCond.getValue())
+                );
+                scvf.setFilterIfMissing(true); //要过滤的列必须存在，如果不存在，那么这些列不存在的数据也会返回
+                scan.setFilter(scvf);
+            }
         }
         return scan;
     }

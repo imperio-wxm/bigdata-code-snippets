@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.wxmimperio.hbase.connection.HBaseConnection;
 import com.wxmimperio.hbase.filter.HBaseFilterList;
 import com.wxmimperio.hbase.filter.SingleColumnValueFilterBytes;
+import com.wxmimperio.hbase.filter.SingleColumnValueFilterComparable;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 
@@ -48,23 +49,35 @@ public class FilterMain {
 
         Scan scan = new Scan();
 
-        // FilterList
-        List<Map<String, String>> filterList = Lists.newArrayList();
+        /**
+         * FilterList
+         */
+        /*List<Map<String, String>> filterList = Lists.newArrayList();
         Map<String, String> filterOne = Maps.newHashMap();
-        filterOne.put("column", "publisher_id");
-        filterOne.put("condition", "9187");
+        filterOne.put("publisher_id", "9187");
         filterList.add(filterOne);
 
-        /*Map<String, String> filterTwo = Maps.newHashMap();
+        Map<String, String> filterTwo = Maps.newHashMap();
         filterTwo.put("column", "reason");
         filterTwo.put("condition", "行会神技");
         filterList.add(filterTwo);*/
 
-        // FilterList
         //scan = HBaseFilterList.FilterLisScan(scan, filterList);
 
-        // SingleColumnValueFilterBytes
-        scan = SingleColumnValueFilterBytes.SingleColumnScan(scan, filterList);
+        /**
+         * SingleColumnValueFilterBytes
+         */
+        //scan = SingleColumnValueFilterBytes.SingleColumnScan(scan, filterList);
+
+        /**
+         * SingleColumnValueFilterComparable
+         * Map<String, Map<String, String>> Map<column, Map<ComparatorType, ComparatorValue>>
+         */
+        Map<String, Map<String, String>> comparableMap = Maps.newHashMap();
+        Map<String, String> comparable = Maps.newHashMap();
+        comparable.put("SubstringComparator", "C_");
+        comparableMap.put("publisher_id", comparable);
+        scan = SingleColumnValueFilterComparable.SingleColumnScan(scan, comparableMap);
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;

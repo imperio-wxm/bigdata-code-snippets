@@ -23,13 +23,15 @@ public class HBaseFilterList {
     public static Scan FilterLisScan(Scan scan, List<Map<String, String>> colAndCondition) {
         FilterList list = new FilterList(FilterList.Operator.MUST_PASS_ALL);
         for (Map<String, String> map : colAndCondition) {
-            SingleColumnValueFilter filter = new SingleColumnValueFilter(
-                    Bytes.toBytes(CommonUtils.CF),
-                    Bytes.toBytes(map.get("column")),
-                    CompareFilter.CompareOp.EQUAL,
-                    Bytes.toBytes(map.get("condition"))
-            );
-            list.addFilter(filter);
+            for (Map.Entry<String, String> colAndCond : map.entrySet()) {
+                SingleColumnValueFilter filter = new SingleColumnValueFilter(
+                        Bytes.toBytes(CommonUtils.CF),
+                        Bytes.toBytes(colAndCond.getKey()),
+                        CompareFilter.CompareOp.EQUAL,
+                        Bytes.toBytes(colAndCond.getValue())
+                );
+                list.addFilter(filter);
+            }
         }
         scan.setFilter(list);
         return scan;
