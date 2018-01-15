@@ -18,3 +18,4 @@ hs_err_pid*
 hbase-client/\.idea/
 
 hbase-client/hbase-client\.iml
+TestSend.java

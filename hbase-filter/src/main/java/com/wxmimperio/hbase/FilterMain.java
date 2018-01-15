@@ -97,7 +97,17 @@ public class FilterMain {
         /**
          * ColumnRangeFilter
          */
-        scan = HBaseColumnRangeFilter.columnRangeFilterScan(scan, "a", "d");
+        //scan = HBaseColumnRangeFilter.columnRangeFilterScan(scan, "a", "d");
+
+        /**
+         * RowFilter
+         */
+        //scan = HBaseRowFilter.rowFilterScan(scan, "0|000003778278");
+
+        /**
+         * ValueFilter
+         */
+        scan = HBaseValueFilter.valueFilterScan(scan,"2017");
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
