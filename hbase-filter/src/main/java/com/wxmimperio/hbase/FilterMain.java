@@ -1,10 +1,14 @@
 package com.wxmimperio.hbase;
 
+import com.google.common.collect.Lists;
 import com.wxmimperio.hbase.connection.HBaseConnection;
 import com.wxmimperio.hbase.filter.*;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import sun.security.krb5.SCDynamicStoreConfig;
+
+import java.util.Arrays;
+import java.util.List;
 
 
 public class FilterMain {
@@ -125,7 +129,37 @@ public class FilterMain {
          */
         //scan = HBasePrefixFilter.prefixFilterScan(scan, "0");
 
-        scan = HBasePageFilter.pageFilterScan(scan, 1L);
+        /**
+         * PageFilter
+         */
+        //scan = HBasePageFilter.pageFilterScan(scan, 1L);
+
+        /**
+         * KeyOnlyFilter
+         */
+        //scan = HBaseKeyOnlyFilter.keyOnlyFilterScan(scan);
+
+        /**
+         * FirstKeyOnlyFilter
+         */
+        //scan = HBaseFirstKeyOnlyFilter.firstKeyOnlyFilterScan(scan);
+
+        /**
+         * InclusiveStopFilter
+         */
+        //scan = HBaseInclusiveStopFilter.inclusiveStopFilterScan(scan, "0|00000fd82570");
+
+        /**
+         * TimestampsFilter
+         */
+        /*List<Long> timestamps = Lists.newArrayList();
+        timestamps.add(1513643349000L);
+        scan = HBaseTimestampFilter.timestampFilterScan(scan, timestamps);*/
+
+        /**
+         * ColumnCountGetFilter
+         */
+        scan = HBaseColumnCountGetFilter.columnCountGetFilterScan(scan, 2);
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
