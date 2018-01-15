@@ -22,7 +22,6 @@ public class SingleColumnValueFilterBytes {
      * @return
      */
     public static Scan SingleColumnScan(Scan scan, List<Map<String, String>> colAndCondition) {
-
         for (Map<String, String> map : colAndCondition) {
             for (Map.Entry<String, String> colAndCond : map.entrySet()) {
                 SingleColumnValueFilter scvf = new SingleColumnValueFilter(

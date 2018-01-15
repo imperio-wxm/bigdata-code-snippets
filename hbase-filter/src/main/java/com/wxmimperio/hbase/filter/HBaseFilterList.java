@@ -20,7 +20,7 @@ public class HBaseFilterList {
      * @param colAndCondition
      * @return
      */
-    public static Scan FilterLisScan(Scan scan, List<Map<String, String>> colAndCondition) {
+    public static Scan FilterListScan(Scan scan, List<Map<String, String>> colAndCondition) {
         FilterList list = new FilterList(FilterList.Operator.MUST_PASS_ALL);
         for (Map<String, String> map : colAndCondition) {
             for (Map.Entry<String, String> colAndCond : map.entrySet()) {

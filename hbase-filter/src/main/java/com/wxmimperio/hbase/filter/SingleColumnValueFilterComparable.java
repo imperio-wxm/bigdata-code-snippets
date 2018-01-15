@@ -37,7 +37,7 @@ public class SingleColumnValueFilterComparable {
             case "BinaryPrefixComparator":
                 return new BinaryPrefixComparator(comparatorValue.getBytes());
             case "BitComparator":
-                return null;
+                new BitComparator(comparatorValue.getBytes(), BitComparator.BitwiseOp.AND);
             case "NullComparator":
                 return new NullComparator();
             case "RegexStringComparator":
@@ -46,7 +46,6 @@ public class SingleColumnValueFilterComparable {
                 return new SubstringComparator(comparatorValue);
             default:
                 return null;
-
         }
     }
 }

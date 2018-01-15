@@ -3,9 +3,7 @@ package com.wxmimperio.hbase;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.wxmimperio.hbase.connection.HBaseConnection;
-import com.wxmimperio.hbase.filter.HBaseFilterList;
-import com.wxmimperio.hbase.filter.SingleColumnValueFilterBytes;
-import com.wxmimperio.hbase.filter.SingleColumnValueFilterComparable;
+import com.wxmimperio.hbase.filter.*;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 
@@ -62,7 +60,7 @@ public class FilterMain {
         filterTwo.put("condition", "行会神技");
         filterList.add(filterTwo);*/
 
-        //scan = HBaseFilterList.FilterLisScan(scan, filterList);
+        //scan = HBaseFilterList.FilterListScan(scan, filterList);
 
         /**
          * SingleColumnValueFilterBytes
@@ -71,13 +69,24 @@ public class FilterMain {
 
         /**
          * SingleColumnValueFilterComparable
-         * Map<String, Map<String, String>> Map<column, Map<ComparatorType, ComparatorValue>>
+         * Map<String, Map<String, String>>
+         * such as: Map<column, Map<ComparatorType, ComparatorValue>>
          */
-        Map<String, Map<String, String>> comparableMap = Maps.newHashMap();
+        /*Map<String, Map<String, String>> comparableMap = Maps.newHashMap();
         Map<String, String> comparable = Maps.newHashMap();
-        comparable.put("SubstringComparator", "C_");
-        comparableMap.put("publisher_id", comparable);
-        scan = SingleColumnValueFilterComparable.SingleColumnScan(scan, comparableMap);
+        comparable.put("NullComparator", "C_");
+        comparableMap.put("publisher_id1", comparable);
+        scan = SingleColumnValueFilterComparable.SingleColumnScan(scan, comparableMap);*/
+
+        /**
+         * FamilyFilter
+         */
+        //scan = HBaseFamilyFilter.familyFilterScan(scan, CommonUtils.CF + 1);
+
+        /**
+         * QualifierFilter
+         */
+        scan = HBaseQualifierFilter.qualifierFilterScan(scan, "publisher_id1");
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
