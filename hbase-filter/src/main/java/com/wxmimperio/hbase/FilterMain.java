@@ -159,7 +159,27 @@ public class FilterMain {
         /**
          * ColumnCountGetFilter
          */
-        scan = HBaseColumnCountGetFilter.columnCountGetFilterScan(scan, 2);
+        //scan = HBaseColumnCountGetFilter.columnCountGetFilterScan(scan, 2);
+
+        /**
+         * ColumnPaginationFilter
+         */
+        //scan = HBaseColumnPaginationFilter.columnPaginationFilterScan(scan, 1, 2);
+
+        /**
+         * RandomRowFilter
+         */
+        //scan = HBaseRandomRowFilter.randomRowFilterScan(scan, 0.75f);
+
+        /**
+         * SkipFilter
+         */
+        //scan = HBaseSkipFilter.skipFilterScan(scan, "9181");
+
+        /**
+         * WhileMatchFilter
+         */
+        scan = HBaseWhileMatchFilter.whileMatchFilterScan(scan, "9187");
 
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
