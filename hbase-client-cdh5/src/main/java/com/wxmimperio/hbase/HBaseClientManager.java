@@ -13,8 +13,10 @@ public class HBaseClientManager {
     private Cache<String, HBaseClient> clientCache;
     private ExecutorService cacheRemovePool;
     private Connection connection;
+    private String nameSpace;
 
-    public HBaseClientManager(Connection connection) {
+    public HBaseClientManager(Connection connection, String nameSpace) {
+        this.nameSpace = nameSpace;
         this.connection = connection;
         this.cacheRemovePool = Executors.newFixedThreadPool(10);
         this.clientCache = CacheBuilder.newBuilder()
@@ -29,7 +31,8 @@ public class HBaseClientManager {
         public void onRemoval(RemovalNotification<String, HBaseClient> notification) {
             try {
                 // delete cache
-                notification.getValue();
+                HBaseClient hBaseClient = notification.getValue();
+                hBaseClient.closeBufferedMutator();
                 Thread.sleep(5000);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -42,7 +45,7 @@ public class HBaseClientManager {
         HBaseClient hBaseClient = clientCache.get(key, new Callable<HBaseClient>() {
             @Override
             public HBaseClient call() throws Exception {
-                return new HBaseClient(connection, "");
+                return new HBaseClient(connection, "", nameSpace);
             }
         });
         return hBaseClient;
@@ -55,7 +58,7 @@ public class HBaseClientManager {
     public HBaseClient getHBaseClient(String tableName) throws Exception {
         HBaseClient hBaseClient;
         if (!clientCache.asMap().containsKey(tableName)) {
-            hBaseClient = new HBaseClient(connection, tableName);
+            hBaseClient = new HBaseClient(connection, tableName, nameSpace);
             put(tableName, hBaseClient);
         } else {
             hBaseClient = get(tableName);
