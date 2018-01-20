@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.*;
 
 public class HBaseClient {
     private static Logger LOG = LoggerFactory.getLogger(HBaseClient.class);
@@ -36,6 +37,9 @@ public class HBaseClient {
     private List<String> keyStruct;
     private TableName tableName;
     private Connection connection;
+    private BufferedMutator mutator;
+    private final ExecutorService workerPool = Executors.newFixedThreadPool(5);
+
     private static final ThreadLocal<SimpleDateFormat> eventTimeSdf = new ThreadLocal<SimpleDateFormat>() {
         @Override
         protected SimpleDateFormat initialValue() {
@@ -43,10 +47,38 @@ public class HBaseClient {
         }
     };
 
-    public HBaseClient(Connection connection, String tableName) throws IOException {
+    public HBaseClient(Connection connection, String tableName, String nameSpace) throws IOException {
         this.connection = connection;
-        this.tableName = TableName.valueOf(NAME_SPACE, tableName);
-        this.keyStruct = new HBaseAdmin(connection).getKeyStruct(tableName);
+        this.tableName = TableName.valueOf(HBaseAdmin.getNameSpace(nameSpace), tableName);
+        this.keyStruct = new HBaseAdmin(connection).getKeyStruct(tableName, HBaseAdmin.getNameSpace(nameSpace));
+        this.mutator = initBufferedMutator(connection, tableName, nameSpace);
+    }
+
+    private BufferedMutator initBufferedMutator(Connection connection, String tableName, String nameSpace) throws IOException {
+        final BufferedMutator.ExceptionListener listener = new BufferedMutator.ExceptionListener() {
+            @Override
+            public void onException(RetriesExhaustedWithDetailsException e, BufferedMutator mutator) {
+                for (int i = 0; i < e.getNumExceptions(); i++) {
+                    LOG.info("Failed to sent put " + e.getRow(i) + ".");
+                }
+            }
+        };
+        BufferedMutatorParams params = new BufferedMutatorParams(TableName.valueOf(HBaseAdmin.getNameSpace(nameSpace), tableName)).listener(listener);
+        params.writeBufferSize(8 * 1024 * 1024);
+        return connection.getBufferedMutator(params);
+    }
+
+    public void closeBufferedMutator() throws IOException {
+        mutator.flush();
+        mutator.close();
+        workerPool.shutdown();
+        try {
+            while (!workerPool.awaitTermination(5, TimeUnit.SECONDS)) {
+                LOG.info("Wait cache pool shutdown.....");
+            }
+        } catch (Exception e) {
+            LOG.error("Shutdown cache pool error.", e);
+        }
     }
 
     public List<JsonObject> getByCondition(JsonObject conditions, List<String> columns) throws Exception {
@@ -58,10 +90,10 @@ public class HBaseClient {
     }
 
     public List<JsonObject> getByKeyList(List<String> keyList, List<String> columns) throws IOException {
-        return getByKeyList(keyList, columns, null, null);
+        return getByKeyList(keyList, columns, 0L, 0L);
     }
 
-    public List<JsonObject> getByKeyList(List<String> keyList, List<String> columns, Long minStamp, Long maxStamp) throws IOException {
+    public List<JsonObject> getByKeyList(List<String> keyList, List<String> columns, long minStamp, long maxStamp) throws IOException {
         LOG.trace("getByKeyList: keyList = {}, columns = {}, minStamp = {}, maxStamp = {}",
                 new Object[]{keyList, columns, minStamp, maxStamp}
         );
@@ -87,10 +119,10 @@ public class HBaseClient {
     }
 
     public List<JsonObject> getByKeyRange(String startKey, String stopKey, List<String> columns) throws IOException {
-        return getByKeyRange(startKey, stopKey, columns, null, null);
+        return getByKeyRange(startKey, stopKey, columns, 0L, 0L);
     }
 
-    public List<JsonObject> getByKeyRange(String startKey, String stopKey, List<String> columns, Long minStamp, Long maxStamp)
+    public List<JsonObject> getByKeyRange(String startKey, String stopKey, List<String> columns, long minStamp, long maxStamp)
             throws IOException {
         LOG.trace("getByKeyRange: startKey = {}, stopKey = {}, columns = {}, minStamp = {}, maxStamp = {}",
                 new Object[]{startKey, stopKey, columns, minStamp, maxStamp}
@@ -126,23 +158,25 @@ public class HBaseClient {
         return list;
     }
 
-    public void put(String colFamily, List<JsonObject> dataList, boolean isUUIdRowKey, Long ttl) throws Exception {
+    public void put(String colFamily, List<JsonObject> dataList, boolean isUUIdRowKey, long ttl) throws Exception {
         LOG.trace("put: colFamily = {}, dataList = {}, isUUIdRowKey = {}, ttl = {}",
                 new Object[]{colFamily, dataList, isUUIdRowKey, ttl}
         );
+        List<Put> rows = convertJsonToPuts(colFamily, dataList, isUUIdRowKey, ttl);
         try (Table table = connection.getTable(tableName)) {
-            List<Put> rows = convertJsonToPuts(colFamily, dataList, isUUIdRowKey, ttl);
+            long startPuts = System.currentTimeMillis();
             if (!rows.isEmpty()) {
                 table.put(rows);
             }
+            LOG.info("put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
         }
     }
 
     public void put(String colFamily, List<JsonObject> dataList, boolean isUUIdRowKey) throws Exception {
-        put(colFamily, dataList, isUUIdRowKey, null);
+        put(colFamily, dataList, isUUIdRowKey, 0L);
     }
 
-    public void put(List<JsonObject> dataList, boolean isUUIdRowKey, Long ttl) throws Exception {
+    public void put(List<JsonObject> dataList, boolean isUUIdRowKey, long ttl) throws Exception {
         put(DEFAULT_COLUMN_FAMILY, dataList, isUUIdRowKey, ttl);
     }
 
@@ -150,14 +184,60 @@ public class HBaseClient {
         put(DEFAULT_COLUMN_FAMILY, dataList, false);
     }
 
-    private TimeRange getTimeRange(Long minStamp, Long maxStamp) throws IOException {
-        return new TimeRange(minStamp == null ? DEFAULT_MIN_TIMESTAMP : minStamp,
-                maxStamp == null ? DEFAULT_MAX_TIMESTAMP : maxStamp);
+    public void batchAsyncPut(List<JsonObject> jsonDatas) throws Exception {
+        //long startRows = System.currentTimeMillis();
+        List<Put> rows = convertJsonToPuts(DEFAULT_COLUMN_FAMILY, jsonDatas, true, 0);
+        //LOG.info("format rows cost = " + (System.currentTimeMillis() - startRows) + " ms");
+        if (!rows.isEmpty()) {
+            long startPuts = System.currentTimeMillis();
+            mutator.mutate(rows);
+            LOG.info(Thread.currentThread().getName() + " "
+                    + tableName.getNameAsString() + " put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
+
+            /*List<Future<Void>> futures = new ArrayList<>(1);
+
+            futures.add(workerPool.submit(new Callable<Void>() {
+                @Override
+                public Void call() throws Exception {
+                    long startPuts = System.currentTimeMillis();
+                    mutator.mutate(rows);
+                    LOG.info(Thread.currentThread().getName() + " "
+                            + tableName.getNameAsString() +
+                            " put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
+                    return null;
+                }
+            }));
+
+            for (Future<Void> f : futures) {
+                f.get(5, TimeUnit.MINUTES);
+            }*/
+            //mutator.flush();
+            /*workerPool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        long startPuts = System.currentTimeMillis();
+                        mutator.mutate(rows);
+                        LOG.info(Thread.currentThread().getName() + " "
+                                + tableName.getNameAsString() +
+                                " put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });*/
+        }
     }
 
-    private List<Put> convertJsonToPuts(String colFamily, List<JsonObject> jsonData, boolean isUUidRowKey, Long ttl)
+    private TimeRange getTimeRange(long minStamp, long maxStamp) throws IOException {
+        return new TimeRange(minStamp > 0L ? DEFAULT_MIN_TIMESTAMP : minStamp,
+                minStamp > 0L ? DEFAULT_MAX_TIMESTAMP : maxStamp);
+    }
+
+    public List<Put> convertJsonToPuts(String colFamily, List<JsonObject> jsonData, boolean isUUidRowKey, long ttl)
             throws Exception {
 
+        long rowsSize = 0L;
         List<Put> putList = Lists.newArrayList();
         for (JsonObject data : jsonData) {
             long eventTimestamp = getTimestamp(data);
@@ -167,22 +247,24 @@ public class HBaseClient {
             } else {
                 rowKey = extractRowKey(data);
             }
-
             Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
             while (jsonIterator.hasNext()) {
                 Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
                 Put put = new Put(Bytes.toBytes(rowKey), eventTimestamp);
-                if (ttl != null && ttl > 0L) {
-                    put.setTTL(ttl);
-                }
                 put.addColumn(
                         Bytes.toBytes(colFamily),
                         Bytes.toBytes(jsonElement.getKey()),
                         Bytes.toBytes(jsonElement.getValue().getAsString())
                 );
+                if (ttl > 0L) {
+                    put.setTTL(ttl);
+                    put.setDurability(Durability.ASYNC_WAL);
+                }
+                rowsSize += put.heapSize();
                 putList.add(put);
             }
         }
+        LOG.info("rows size = " + rowsSize);
         return putList;
     }
 
@@ -200,46 +282,37 @@ public class HBaseClient {
     }
 
     /**
-     * 1. logicalKey = UUID取前8位 + timestamp（event_time）取6—10 位精确到秒，避免UUID过短导致重复，确保timestamp范围内唯一
-     * 2. rowKey = 分桶数默认10，取第一位作为路由键
-     * 3. 实例：4|fe88b8081213
+     * 1. logicalKey = UUID取前8位 + event_time 取15:10:10 位精确到秒，避免UUID过短导致重复，确保event_time范围内唯一
+     * 2. 实例：fe88b808151010
      *
      * @param data
      * @return
      */
-    private String extractUUIdRowKey(JsonObject data) throws Exception {
+    private static String extractUUIdRowKey(JsonObject data) throws Exception {
         String logicalKey = UUID.randomUUID().toString().substring(0, 8) + String.valueOf(System.currentTimeMillis()).substring(6, 10);
         try {
             if (data.has(EVENT_TIME) && data.has(MESSAGE_KEY)) {
-                logicalKey = data.get(MESSAGE_KEY).getAsString().substring(0, 8) + String.valueOf(getTimestamp(data)).substring(6, 10);
+                logicalKey = data.get(MESSAGE_KEY).getAsString().substring(0, 8)
+                        + deleteCharString(data.get(EVENT_TIME).getAsString().substring(11, 19), ':');
             }
         } catch (Exception e) {
             throw new Exception("Event_time or message_key not qualified, data = " + data, e);
         }
-        return Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + ROW_KEY_DELIMITER + logicalKey;
+        return logicalKey;
     }
 
-    /**
-     * 1. logicalKey = UUID取前8位 + timestamp（event_time）取6—10 位精确到秒，避免UUID过短导致重复，确保timestamp范围内唯一
-     * 2. rowKey = 分桶数默认10，取第一位作为路由键
-     * 3. 实例：4|fe88b8081213
-     *
-     * @param data
-     * @return
-     */
-    /*private String extractUUIdRowKey(JsonObject data) throws Exception {
-        String logicalKey = UUID.randomUUID().toString() + new StringBuilder(String.valueOf(System.nanoTime())).reverse().substring(0, 4);
-        try {
-            if (data.has(EVENT_TIME) && data.has(MESSAGE_KEY)) {
-                logicalKey = data.get(MESSAGE_KEY).getAsString();
-            } else {
-                LOG.info("This message can not get event_time and message_key, " + data.toString());
-            }
-        } catch (Exception e) {
-            throw new Exception("Event_time or message_key not qualified, data = " + data, e);
+    public static void main(String[] args) throws Exception {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("message_key", UUID.randomUUID().toString());
+        jsonObject.addProperty("event_time", eventTimeSdf.get().format(new Date()));
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 10000000; i++) {
+            //extractUUIdRowKey(jsonObject);
         }
-        return Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + ROW_KEY_DELIMITER + logicalKey;
-    }*/
+
+        System.out.println("cost = " + (System.currentTimeMillis() - start) / 1000.0);
+    }
 
     /**
      * 1. rowkey = 建表时keyStruct中指定字段
@@ -281,5 +354,15 @@ public class HBaseClient {
 
     public void setShowMetaData(boolean showMetaData) {
         this.showMetaData = showMetaData;
+    }
+
+    public static String deleteCharString(String sourceString, char chElemData) {
+        StringBuffer stringBuffer = new StringBuffer("");
+        for (int i = 0; i < sourceString.length(); i++) {
+            if (sourceString.charAt(i) != chElemData) {
+                stringBuffer.append(sourceString.charAt(i));
+            }
+        }
+        return stringBuffer.toString();
     }
 }
