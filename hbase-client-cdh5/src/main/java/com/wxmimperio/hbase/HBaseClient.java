@@ -163,12 +163,13 @@ public class HBaseClient {
                 new Object[]{colFamily, dataList, isUUIdRowKey, ttl}
         );
         List<Put> rows = convertJsonToPuts(colFamily, dataList, isUUIdRowKey, ttl);
+
         try (Table table = connection.getTable(tableName)) {
             long startPuts = System.currentTimeMillis();
             if (!rows.isEmpty()) {
                 table.put(rows);
             }
-            LOG.info("put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
+            LOG.info(tableName.getNameAsString() + " put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
         }
     }
 
@@ -182,6 +183,10 @@ public class HBaseClient {
 
     public void put(List<JsonObject> dataList) throws Exception {
         put(DEFAULT_COLUMN_FAMILY, dataList, false);
+    }
+
+    public String getTableName() {
+        return tableName.getNameAsString();
     }
 
     public void batchAsyncPut(List<JsonObject> jsonDatas) throws Exception {
@@ -237,8 +242,8 @@ public class HBaseClient {
     public List<Put> convertJsonToPuts(String colFamily, List<JsonObject> jsonData, boolean isUUidRowKey, long ttl)
             throws Exception {
 
-        long rowsSize = 0L;
         List<Put> putList = Lists.newArrayList();
+
         for (JsonObject data : jsonData) {
             long eventTimestamp = getTimestamp(data);
             String rowKey;
@@ -251,20 +256,22 @@ public class HBaseClient {
             while (jsonIterator.hasNext()) {
                 Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
                 Put put = new Put(Bytes.toBytes(rowKey), eventTimestamp);
+                String value = "";
+                if (!jsonElement.getValue().isJsonNull()) {
+                    value = jsonElement.getValue().getAsString();
+                }
                 put.addColumn(
                         Bytes.toBytes(colFamily),
                         Bytes.toBytes(jsonElement.getKey()),
-                        Bytes.toBytes(jsonElement.getValue().getAsString())
+                        Bytes.toBytes(value)
                 );
                 if (ttl > 0L) {
                     put.setTTL(ttl);
                     put.setDurability(Durability.ASYNC_WAL);
                 }
-                rowsSize += put.heapSize();
                 putList.add(put);
             }
         }
-        LOG.info("rows size = " + rowsSize);
         return putList;
     }
 
@@ -282,18 +289,21 @@ public class HBaseClient {
     }
 
     /**
-     * 1. logicalKey = UUID取前8位 + event_time 取15:10:10 位精确到秒，避免UUID过短导致重复，确保event_time范围内唯一
-     * 2. 实例：fe88b808151010
+     * 1. logicalKey = UUID取前12位 + event_time 取15:10:10 位精确到秒，避免UUID过短导致重复，确保event_time范围内唯一
+     * 2. 实例：fe88b8082312151010
      *
      * @param data
      * @return
      */
-    private static String extractUUIdRowKey(JsonObject data) throws Exception {
-        String logicalKey = UUID.randomUUID().toString().substring(0, 8) + String.valueOf(System.currentTimeMillis()).substring(6, 10);
+    public static String extractUUIdRowKey(JsonObject data) throws Exception {
+        String logicalKey;
         try {
             if (data.has(EVENT_TIME) && data.has(MESSAGE_KEY)) {
-                logicalKey = data.get(MESSAGE_KEY).getAsString().substring(0, 8)
+                logicalKey = HBaseClient.deleteCharString(data.get(MESSAGE_KEY).getAsString().substring(0, 13), '-')
                         + deleteCharString(data.get(EVENT_TIME).getAsString().substring(11, 19), ':');
+            } else {
+                logicalKey = HBaseClient.deleteCharString(UUID.randomUUID().toString().substring(0, 13), '-')
+                        + String.valueOf(System.currentTimeMillis()).substring(4, 10);
             }
         } catch (Exception e) {
             throw new Exception("Event_time or message_key not qualified, data = " + data, e);
