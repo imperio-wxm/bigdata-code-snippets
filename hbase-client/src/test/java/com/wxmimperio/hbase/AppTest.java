@@ -61,6 +61,17 @@ public class AppTest {
         System.out.println(endRegionSalt);
 
         System.out.println(encodeHexStr(15, "1|1513564850774|dbb17da1"));
+
+    }
+
+
+    @org.junit.Test
+    public void test111() {
+        String uuid = UUID.randomUUID().toString();
+
+        if (uuid.contains("-"))
+            System.out.println(UUID.randomUUID().toString().length());
+
     }
 
     public static String encodeHexStr(int dataCoding, String realStr) {

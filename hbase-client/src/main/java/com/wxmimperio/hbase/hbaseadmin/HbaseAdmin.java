@@ -42,6 +42,13 @@ public class HbaseAdmin {
         admin = getAdmin(connection);
     }
 
+    public void createNameSpace(String nameSpaceName) throws IOException {
+        try (Admin admin = connection.getAdmin()) {
+            NamespaceDescriptor namespaceDescriptor = NamespaceDescriptor.create(nameSpaceName).build();
+            admin.createNamespace(namespaceDescriptor);
+        }
+    }
+
     private synchronized static Connection getConnection() {
         Configuration configuration = HBaseConfiguration.create();
         configuration.addResource(HBASE_SITE);
@@ -80,11 +87,11 @@ public class HbaseAdmin {
             LOG.info("Table " + tableName + " exists!");
         } else {
             HTableDescriptor hTableDescriptor = new HTableDescriptor(hbaseTable);
-            hTableDescriptor.setValue("key_struct", "{\"COMPRESSION\":\"SNAPPY\",\"VERSIONS\":\"1\"}");
-            //hTableDescriptor.setValue("COMPRESSION","SNAPPY");
-            //hTableDescriptor.setValue("VERSIONS","1");
+            hTableDescriptor.setValue("key_struct", "message_key|event_time");
             for (String col : cols) {
                 HColumnDescriptor hColumnDescriptor = new HColumnDescriptor(col);
+                hColumnDescriptor.setValue("COMPRESSION", "SNAPPY");
+                hColumnDescriptor.setValue("VERSIONS", "1");
                 hTableDescriptor.addFamily(hColumnDescriptor);
             }
             if (splitKeys.length == 0) {
@@ -95,7 +102,7 @@ public class HbaseAdmin {
         }
     }
 
-    public long batchAsyncPut(String tableName, String colFamily, List<Map<String, JsonObject>> puts) throws Exception {
+    public long batchAsyncPut(String tableName, String colFamily, List<JsonObject> jsonDatas) throws Exception {
         long currentTime = System.currentTimeMillis();
         Connection conn = getConnection();
         final BufferedMutator.ExceptionListener listener = new BufferedMutator.ExceptionListener() {
@@ -106,22 +113,18 @@ public class HbaseAdmin {
                 }
             }
         };
-        BufferedMutatorParams params = new BufferedMutatorParams(TableName.valueOf(tableName))
-                .listener(listener);
+        BufferedMutatorParams params = new BufferedMutatorParams(TableName.valueOf("default", tableName)).listener(listener);
         params.writeBufferSize(5 * 1024 * 1024);
 
-        final BufferedMutator mutator = conn.getBufferedMutator(params);
-        try {
-            mutator.mutate(getMutationListByJson(colFamily, puts));
+        try (final BufferedMutator mutator = conn.getBufferedMutator(params)) {
+            mutator.mutate(getPutListByJson(colFamily, jsonDatas));
             mutator.flush();
-        } finally {
-            mutator.close();
         }
         return System.currentTimeMillis() - currentTime;
     }
 
     public void insertJsonRow(String tableName, String colFamily, List<JsonObject> jsonDatas) throws Exception {
-        Table table = connection.getTable(TableName.valueOf(tableName));
+        Table table = connection.getTable(TableName.valueOf("rt", tableName));
         table.put(getPutListByJson(colFamily, jsonDatas));
         table.close();
     }
@@ -173,25 +176,35 @@ public class HbaseAdmin {
             /*String logicalKey = UUID.randomUUID().toString().substring(0, 8) + String.valueOf(eventTimestamp).substring(6, 10);
             String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + "|" + logicalKey;*/
 
-            String logicalKey = String.valueOf(System.currentTimeMillis()) + "|" + UUID.randomUUID().toString().substring(0, 8);
-            String rowKey = Integer.toString(Math.abs(logicalKey.hashCode() % 10)).substring(0, 1) + "|" + logicalKey;
-
+            String logicalKey = data.get("message_key").getAsString().substring(0, 8)
+                    + deleteCharString(data.get("event_time").getAsString().substring(11, 19), ':');
             try {
-                Thread.sleep(1000);
+                Thread.sleep(200);
+                System.out.println(data);
+                System.out.println(logicalKey);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             Iterator<Map.Entry<String, JsonElement>> jsonIterator = data.entrySet().iterator();
             while (jsonIterator.hasNext()) {
                 Map.Entry<String, JsonElement> jsonElement = jsonIterator.next();
-                Put put = new Put(Bytes.toBytes(rowKey), eventTimestamp);
-                put.setTTL(60 * 1000L * 60 * 24 * 7);
+                Put put = new Put(Bytes.toBytes(logicalKey), eventTimestamp);
+                //put.setTTL(60 * 1000L * 60 * 24 * 7);
                 put.addColumn(Bytes.toBytes(colFamily), Bytes.toBytes(jsonElement.getKey()), Bytes.toBytes(jsonElement.getValue().getAsString()));
                 putList.add(put);
             }
         }
         return putList;
+    }
+
+    public String deleteCharString(String sourceString, char chElemData) {
+        StringBuffer stringBuffer = new StringBuffer("");
+        for (int i = 0; i < sourceString.length(); i++) {
+            if (sourceString.charAt(i) != chElemData) {
+                stringBuffer.append(sourceString.charAt(i));
+            }
+        }
+        return stringBuffer.toString();
     }
 
     public static void main(String[] args) throws Exception {
@@ -218,8 +231,7 @@ public class HbaseAdmin {
         Scan scan = new Scan();
         /*System.out.println("startRow = " + startRow);
         System.out.println("stopRow = " + stopRow);*/
-        scan.setStartRow(Bytes.toBytes(startRow));
-        scan.setStopRow(Bytes.toBytes(stopRow));
+        scan.setTimeRange(Long.parseLong(startRow), Long.parseLong(stopRow));
         ResultScanner resultScanner = table.getScanner(scan);
         int i = 0;
         for (Result result : resultScanner) {
