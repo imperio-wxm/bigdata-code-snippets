@@ -169,7 +169,7 @@ public class HBaseClient {
             if (!rows.isEmpty()) {
                 table.put(rows);
             }
-            LOG.info(tableName.getNameAsString() + " put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
+            LOG.debug(tableName.getNameAsString() + " put cost = " + (System.currentTimeMillis() - startPuts) + " ms");
         }
     }
 
