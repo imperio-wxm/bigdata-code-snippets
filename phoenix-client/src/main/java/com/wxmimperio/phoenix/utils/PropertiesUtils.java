@@ -18,6 +18,10 @@ public class PropertiesUtils {
         return this.bundle.getString(key);
     }
 
+    public String getPhoenixConnectUrl() {
+        return this.bundle.getString("phoenix.jdbc.connect.url");
+    }
+
     public int getInt(String key) {
         return Integer.parseInt(this.bundle.getString(key));
     }

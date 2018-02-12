@@ -18,7 +18,6 @@ public class PhoenixDDL {
         Connection conn = null;
         Statement stmt = null;
 
-
         try {
             conn = dataSource.getConnection();
             stmt = conn.createStatement();
