@@ -11,16 +11,17 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
 /**
  * Created by wxmimperio on 2018/2/19.
  */
 public class TestUdf {
     public static final String DATE_FORMAT = "yyyy-MM-dd";
 
-    @ScalarFunction
+    @ScalarFunction("to_date")
     @Description("hive to_date function")
     @SqlType(StandardTypes.VARCHAR)
-    public static Slice to_date(@SqlType(StandardTypes.TIMESTAMP) long input) {
+    public static Slice toDate(@SqlType(StandardTypes.TIMESTAMP) long input) {
         final DateFormat format = new SimpleDateFormat(DATE_FORMAT);
         return Slices.utf8Slice(format.format(new Date(input)));
     }
