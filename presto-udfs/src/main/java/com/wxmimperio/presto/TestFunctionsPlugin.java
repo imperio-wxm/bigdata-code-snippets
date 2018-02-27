@@ -30,7 +30,7 @@ public class TestFunctionsPlugin implements Plugin {
         if (type == FunctionFactory.class) {
             //return ImmutableList.of(type.cast(new TestFunctionFactory(typeManager)));
             final FunctionListBuilder builder = new FunctionListBuilder();
-            builder.scalars(TestUdf.class);
+            builder.scalars(TestUdf.class).scalars(Ip2Long.class);
             FunctionFactory factory = () -> builder.getFunctions();
             return ImmutableList.of(type.cast(factory));
         } else {
