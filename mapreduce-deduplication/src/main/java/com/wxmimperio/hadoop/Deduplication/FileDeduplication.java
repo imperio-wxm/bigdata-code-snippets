@@ -6,9 +6,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
 import org.apache.hadoop.io.Text;
 
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
@@ -24,6 +22,12 @@ public class FileDeduplication {
     private static final Logger LOG = LoggerFactory.getLogger(FileDeduplication.class);
     private static final String MAPRED_OUTPUT_COMPRESS = "mapred.output.compress";
     private static final String EMPTY = "";
+    private static final String CORE_SITE_XML = "core-site.xml";
+    private static final String HDFS_SITE_XML = "hdfs-site.xml";
+
+    public enum Count {
+        TotalCount
+    }
 
     public static class DeduplicationMapper extends Mapper<Object, Text, Text, Text> {
 
@@ -44,19 +48,24 @@ public class FileDeduplication {
             Text value = values.iterator().next();
             if (value.toString().equalsIgnoreCase(EMPTY)) {
                 context.write(new Text(EMPTY), key);
+                context.getCounter(Count.TotalCount).increment(1);
             } else {
                 context.write(key, value);
+                context.getCounter(Count.TotalCount).increment(1);
             }
         }
     }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        conf.set("fs.defaultFS", "");
+        conf.addResource(CORE_SITE_XML);
+        conf.addResource(HDFS_SITE_XML);
+        conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
         conf.setBoolean(MAPRED_OUTPUT_COMPRESS, false);
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
+			// inputFormat：org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat
             LOG.error("Usage: java -cp xxx.jar com.xxx.FileDeduplication <inPath> <inputFormat> <outPath>");
             System.exit(2);
         }
@@ -74,12 +83,17 @@ public class FileDeduplication {
         job.setOutputValueClass(Text.class);
         job.setInputFormatClass(inputFormat);
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        job.setNumReduceTasks(1);
 
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
         SequenceFileOutputFormat.setOutputPath(job, new Path(otherArgs[2]));
         SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
 
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        if(job.waitForCompletion(true) ? true: false) {
+            Counters counters = job.getCounters();
+            Counter counter = counters.findCounter(Count.TotalCount);
+            LOG.info("TotalCount = " + counter.getValue());
+        }
     }
 
     private static void deleteFile(Configuration conf, String fileName) throws Exception {

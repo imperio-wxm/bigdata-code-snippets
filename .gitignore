@@ -15,6 +15,7 @@ hs_err_pid*
 /hadoop-sequenceFile/logs
 /hadoop-sequenceFile/hadoop-sequenceFile.iml
 
+<<<<<<< HEAD
 presto-udfs/target/
 
 presto-udfs/\.idea/
@@ -22,3 +23,9 @@ presto-udfs/\.idea/
 presto-udfs/presto-udfs\.iml
 
 presto-udfs/dependency-reduced-pom\.xml
+=======
+hbase-client/\.idea/
+
+hbase-client/hbase-client\.iml
+TestSend.java
+>>>>>>> master
