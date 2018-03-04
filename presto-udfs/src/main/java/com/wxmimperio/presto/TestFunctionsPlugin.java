@@ -33,7 +33,8 @@ public class TestFunctionsPlugin implements Plugin {
             builder.scalars(TestUdf.class)
                     .scalars(Ip2Long.class)
                     .scalars(TimestampToDate.class)
-                    .scalars(DateSub.class);
+                    .scalars(DateSub.class)
+                    .scalars(DateOpts.class);
             FunctionFactory factory = () -> builder.getFunctions();
             return ImmutableList.of(type.cast(factory));
         } else {
