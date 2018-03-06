@@ -26,11 +26,10 @@ public class PhoenixDML {
                  PreparedStatement pst = connection.prepareStatement(sql)) {
                 connection.setAutoCommit(false);
                 for (JSONObject jsonData : jsonObjects) {
-                    int index = 1;
-                    for (Map.Entry<String, Object> entry : jsonData.entrySet()) {
-                        pst.setString(index, entry.getValue().toString());
-                        index++;
-                    }
+                    pst.setString(1, jsonData.get("id").toString());
+                    pst.setString(2, jsonData.get("name").toString());
+                    pst.setString(3, jsonData.get("age").toString());
+                    pst.setString(4, jsonData.get("gender").toString());
                     pst.addBatch();
                 }
                 pst.executeBatch();
@@ -39,12 +38,6 @@ public class PhoenixDML {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-
-    public static void main(String[] args) {
-
-
     }
 
     private Connection getPhoenixConnection() throws SQLException {
