@@ -7,6 +7,10 @@ import com.wxmimperio.phoenix.ops.PhoenixDDL;
 import com.wxmimperio.phoenix.ops.PhoenixDDLPool;
 import com.wxmimperio.phoenix.ops.PhoenixDML;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -34,16 +38,54 @@ public class PhoenixMain {
 
         //phoenixDDLPool.executeSql(cretaeSql4);
 
-        String insertSql = "UPSERT INTO dw.wxm_insert_test VALUES(?,?,?,?)";
-        List<JSONObject> jsonObjects = Lists.newArrayList();
-        for (int i = 0; i < 50; i++) {
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("id", i);
-            jsonObject.put("name", "wxm" + i);
-            jsonObject.put("age", i * 10);
-            jsonObject.put("gender", "男");
-            jsonObjects.add(jsonObject);
-        }
-        phoenixDML.insert(insertSql, jsonObjects);
+        String insertSql = "".toUpperCase();
+        String filePath = "D:\\d_backup\\github\\hadoop-code-snippets\\phoenix-client\\src\\main\\resources\\data.txt";
+        //System.out.println(readFileByLines(filePath));
+        //phoenixDML.insert(insertSql, readFileByLines(filePath));
+        String selectSql = "";
+        phoenixDML.select(selectSql);
     }
+
+    public static List<JSONObject> readFileByLines(String fileName) {
+        File file = new File(fileName);
+        BufferedReader reader = null;
+        List<JSONObject> jsonObjects = Lists.newArrayList();
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempString = null;
+            int line = 1;
+            while ((tempString = reader.readLine()) != null) {
+                String[] lines = tempString.split("\t", -1);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("MESSAGE_KEY", line);
+                jsonObject.put("EVENT_TIME", lines[0]);
+                jsonObject.put("GAME_ID", lines[1]);
+                jsonObject.put("AREA_ID", lines[2]);
+                jsonObject.put("GROUP_ID", lines[3]);
+                jsonObject.put("PLATFORM", lines[4]);
+                jsonObject.put("CHANNEL_ID", lines[5]);
+                jsonObject.put("MID", lines[6]);
+                jsonObject.put("CHARACTER_ID", lines[7]);
+                jsonObject.put("CHARACTER_LEVEL", lines[8]);
+                jsonObject.put("TASK_ID", lines[9]);
+                jsonObject.put("TASK_TYPE", lines[10]);
+                jsonObject.put("OPT_TYPE", lines[11]);
+                jsonObject.put("SERIAL_NUM", lines[12]);
+                jsonObjects.add(jsonObject);
+                line++;
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                }
+            }
+        }
+        return jsonObjects;
+    }
+
 }
