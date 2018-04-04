@@ -66,6 +66,7 @@ public class HFileGenerator {
         job.setMapperClass(HFileMapper.class);
         job.setMapOutputKeyClass(ImmutableBytesWritable.class);
         job.setMapOutputValueClass(Put.class);
+        job.setNumReduceTasks(5);
 
         FileInputFormat.addInputPath(job, new Path(inputFile));
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
