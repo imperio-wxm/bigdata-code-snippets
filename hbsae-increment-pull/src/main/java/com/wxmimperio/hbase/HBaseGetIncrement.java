@@ -2,10 +2,13 @@ package com.wxmimperio.hbase;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.wxmimperio.hbase.utils.HBaseUtil;
 import com.wxmimperio.hbase.utils.HiveUtil;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
@@ -16,6 +19,7 @@ import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
+import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 import org.apache.hadoop.io.NullWritable;
@@ -25,6 +29,7 @@ import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,6 +37,26 @@ import java.util.List;
 public class HBaseGetIncrement {
     public static String EMPTY = "";
     private static String HBASE_SITE = "hbaes-site.xml";
+
+    public static class RowKeyMapper extends TableMapper<ImmutableBytesWritable, Text> {
+        private static long vkey = 0L;
+        private long mkey = 0L;
+
+        public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
+            vkey = vkey + 1;
+            mkey = vkey / 10000;
+            String rowKey = HiveUtil.convertResultToJson(value).get("Rowkey").getAsString();
+            context.write(new ImmutableBytesWritable(String.valueOf(mkey).getBytes()), new Text(String.valueOf(rowKey).getBytes()));
+        }
+    }
+
+    public static class RowKeyReducer extends Reducer<Text, Text, Text, Text> {
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            for (Text val : values) {
+                context.write(key, new Text(val));
+            }
+        }
+    }
 
 
     public static class HBaseMapper extends TableMapper<ImmutableBytesWritable, Text> {
@@ -41,7 +66,8 @@ public class HBaseGetIncrement {
         public void map(ImmutableBytesWritable row, Result value, Context context) throws InterruptedException, IOException {
             vkey = vkey + 1;
             mkey = vkey / 10000;
-            context.write(new ImmutableBytesWritable(String.valueOf(mkey).getBytes()), new Text(HiveUtil.convertResultToJson(value).toString()));
+            context.write(new ImmutableBytesWritable(String.valueOf(mkey).getBytes()),
+                    new Text(HiveUtil.convertResultToJson(value).get("Rowkey").getAsString()));
         }
     }
 
@@ -87,15 +113,15 @@ public class HBaseGetIncrement {
         Configuration config = HBaseConfiguration.create();
         config.addResource(HBASE_SITE);
 
+        StructTypeInfo schema = HiveUtil.getColumnTypeDescs("dw", tableName);
+        config.set("schema", schema.getTypeName());
+        config.set("tableName", tableName);
+
         Scan scan = new Scan();
         scan.setCaching(1500);
         scan.setCacheBlocks(false);
 
-        scan.setTimeRange(
-                Long.parseLong(startTimeStamp),
-                Long.parseLong(endTimeStamp)
-        );
-
+        scan.setTimeRange(Long.parseLong(startTimeStamp), Long.parseLong(endTimeStamp));
         scan.setMaxVersions(1);
 
         Job job = new Job(config, "HBaseIncrement=" + tableName);
@@ -103,19 +129,20 @@ public class HBaseGetIncrement {
         TableMapReduceUtil.initTableMapperJob(
                 tableName,
                 scan,
-                HBaseMapper.class,
+                RowKeyMapper.class,
                 NullWritable.class,
                 Writable.class,
                 job);
 
         job.setMapOutputKeyClass(ImmutableBytesWritable.class);
         job.setMapOutputValueClass(Text.class);
-        job.setReducerClass(HBaseReduce.class);
+        job.setReducerClass(RowKeyReducer.class);
         job.setOutputKeyClass(NullWritable.class);
         job.setOutputValueClass(Writable.class);
-        OrcNewOutputFormat.setOutputCompressorClass(job, SnappyCodec.class);
-        job.setOutputFormatClass(OrcNewOutputFormat.class);
-        //job.setNumReduceTasks(Integer.parseInt(numTask));
+        job.setOutputFormatClass(TextOutputFormat.class);
+        /*OrcNewOutputFormat.setOutputCompressorClass(job, SnappyCodec.class);
+        job.setOutputFormatClass(OrcNewOutputFormat.class);*/
+        job.setNumReduceTasks(5);
 
         FileOutputFormat.setOutputPath(job, new Path(outPutPath));
 

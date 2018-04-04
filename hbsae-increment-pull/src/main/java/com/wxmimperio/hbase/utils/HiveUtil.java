@@ -3,16 +3,23 @@ package com.wxmimperio.hbase.utils;
 import com.google.gson.JsonObject;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
+import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.io.*;
+
+import java.sql.Connection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -273,11 +280,10 @@ public class HiveUtil {
     }
 
     /*CHD5*/
-    public static JsonObject convertResultToJson(Result value) {
+    public static JsonObject convertResultToJson(Result value) throws IOException {
         JsonObject jsonObject = new JsonObject();
         for (Cell cell : value.rawCells()) {
             jsonObject.addProperty("Rowkey", new String(CellUtil.cloneRow(cell)));
-            jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
         }
         return jsonObject;
     }
