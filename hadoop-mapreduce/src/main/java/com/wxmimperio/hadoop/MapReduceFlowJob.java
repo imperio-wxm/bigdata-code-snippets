@@ -7,6 +7,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -59,6 +60,8 @@ public class MapReduceFlowJob {
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
+        conf.addResource("hdfs-site.xml");
+        conf.addResource("core-site.xml");
 
         String inputPath = args[0];
         String rowKeyOutPutPath = args[1];
@@ -69,7 +72,7 @@ public class MapReduceFlowJob {
         HDFSUtils.delete(rowKeyOutPutPath);
         HDFSUtils.delete(finalPath);
 
-        // rowKeyJob
+        // RowKeyJob
         Job rowKeyJob = Job.getInstance(conf, "RowKeyJob");
         rowKeyJob.setJarByClass(MapReduceFlowJob.class);
         rowKeyJob.setMapperClass(RowKeyMapper.class);
@@ -81,5 +84,22 @@ public class MapReduceFlowJob {
         rowKeyJob.setOutputFormatClass(SequenceFileOutputFormat.class);
         FileInputFormat.addInputPath(rowKeyJob, new Path(inputPath));
         FileOutputFormat.setOutputPath(rowKeyJob, new Path(rowKeyOutPutPath));
+
+        // FinalJob
+        Job finalJob = Job.getInstance(conf, "FinalJob");
+        finalJob.setJarByClass(MapReduceFlowJob.class);
+        finalJob.setMapperClass(FinalMapper.class);
+        finalJob.setCombinerClass(FinalReducer.class);
+        finalJob.setReducerClass(FinalReducer.class);
+        finalJob.setOutputKeyClass(Text.class);
+        finalJob.setOutputValueClass(Text.class);
+        finalJob.setInputFormatClass(SequenceFileInputFormat.class);
+        finalJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+        FileInputFormat.addInputPath(finalJob, new Path(rowKeyOutPutPath));
+        FileOutputFormat.setOutputPath(finalJob, new Path(finalPath));
+
+        if (rowKeyJob.waitForCompletion(true)) {
+            System.exit(finalJob.waitForCompletion(true) ? 0 : 1);
+        }
     }
 }

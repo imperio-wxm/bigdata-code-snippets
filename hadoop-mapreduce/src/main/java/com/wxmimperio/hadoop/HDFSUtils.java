@@ -34,8 +34,6 @@ public class HDFSUtils {
     private static final String DFS_SUPPORT_APPEND = "dfs.support.append";
     private static final String CORE_SITE_XML = "core-site.xml";
     private static final String HDFS_SITE_XML = "hdfs-site.xml";
-    private static final String MAPRED_SITE_XML = "mapred-site.xml";
-    private static final String YARN_SITE_XML = "mapred-site.xml";
 
     public HDFSUtils() {
     }
@@ -44,16 +42,12 @@ public class HDFSUtils {
         Configuration conf = new Configuration();
         conf.addResource(CORE_SITE_XML);
         conf.addResource(HDFS_SITE_XML);
-        conf.addResource(MAPRED_SITE_XML);
-        conf.addResource(YARN_SITE_XML);
         conf.set(DFS_SUPPORT_APPEND, "true");
         conf.set(DFS_FAILURE_ENABLE, "true");
         conf.set(DEFAULTFS, hdfsUri);
         conf.set(DFS_FAILURE_POLICY, "NEVER");
         conf.set(DFS_TRANSFER_THREADS, "16000");
-        conf.set("dfs.client.block.write.locateFollowingBlock.retries", "20");
         conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
-        conf.setBoolean("fs.automatic.close", false);
         return conf;
     }
 
