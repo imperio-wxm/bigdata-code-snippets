@@ -16,12 +16,12 @@ import java.io.IOException;
 
 public class MapReduceFlowJob {
 
-    public static class RowKeyMapper extends Mapper<Text, Text, Text, Text> {
+    public static class RowKeyMapper extends Mapper<Object, Text, Text, Text> {
         private static long vkey = 0L;
         private long mkey = 0L;
 
         @Override
-        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             vkey = vkey + 1;
             mkey = vkey / 10000;
             context.write(new Text(String.valueOf(mkey)), value);
@@ -37,12 +37,12 @@ public class MapReduceFlowJob {
         }
     }
 
-    public static class FinalMapper extends Mapper<Text, Text, Text, Text> {
+    public static class FinalMapper extends Mapper<Object, Text, Text, Text> {
         private static long vkey = 0L;
         private long mkey = 0L;
 
         @Override
-        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             vkey = vkey + 1;
             mkey = vkey / 10000;
             context.write(new Text(String.valueOf(mkey)), value);
@@ -68,7 +68,7 @@ public class MapReduceFlowJob {
         String finalPath = args[2];
 
         // delete path
-        HDFSUtils.delete(inputPath);
+        //HDFSUtils.delete(inputPath);
         HDFSUtils.delete(rowKeyOutPutPath);
         HDFSUtils.delete(finalPath);
 
@@ -76,8 +76,9 @@ public class MapReduceFlowJob {
         Job rowKeyJob = Job.getInstance(conf, "RowKeyJob");
         rowKeyJob.setJarByClass(MapReduceFlowJob.class);
         rowKeyJob.setMapperClass(RowKeyMapper.class);
-        rowKeyJob.setCombinerClass(RowKeyReducer.class);
         rowKeyJob.setReducerClass(RowKeyReducer.class);
+        rowKeyJob.setMapOutputKeyClass(Text.class);
+        rowKeyJob.setMapOutputValueClass(Text.class);
         rowKeyJob.setOutputKeyClass(Text.class);
         rowKeyJob.setOutputValueClass(Text.class);
         rowKeyJob.setInputFormatClass(TextInputFormat.class);
@@ -89,8 +90,9 @@ public class MapReduceFlowJob {
         Job finalJob = Job.getInstance(conf, "FinalJob");
         finalJob.setJarByClass(MapReduceFlowJob.class);
         finalJob.setMapperClass(FinalMapper.class);
-        finalJob.setCombinerClass(FinalReducer.class);
         finalJob.setReducerClass(FinalReducer.class);
+        finalJob.setMapOutputKeyClass(Text.class);
+        finalJob.setMapOutputValueClass(Text.class);
         finalJob.setOutputKeyClass(Text.class);
         finalJob.setOutputValueClass(Text.class);
         finalJob.setInputFormatClass(SequenceFileInputFormat.class);

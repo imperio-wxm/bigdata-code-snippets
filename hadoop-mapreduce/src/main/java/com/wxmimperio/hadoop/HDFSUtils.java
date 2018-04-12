@@ -26,7 +26,7 @@ public class HDFSUtils {
     private static final Logger LOG = LoggerFactory.getLogger(HDFSUtils.class);
 
 
-    private static String hdfsUri = "";
+    private static String hdfsUri = "hdfs://sdg";
     private static final String DEFAULTFS = "fs.defaultFS";
     private static final String DFS_FAILURE_ENABLE = "dfs.client.block.write.replace-datanode-on-failure.enable";
     private static final String DFS_FAILURE_POLICY = "dfs.client.block.write.replace-datanode-on-failure.policy";
