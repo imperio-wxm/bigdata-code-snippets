@@ -1,8 +1,61 @@
 package com.wxmimperio.hadoop;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+
+import java.io.IOException;
 
 public class MapReduceFlowJob {
+
+    public static class RowKeyMapper extends Mapper<Text, Text, Text, Text> {
+        private static long vkey = 0L;
+        private long mkey = 0L;
+
+        @Override
+        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+            vkey = vkey + 1;
+            mkey = vkey / 10000;
+            context.write(new Text(String.valueOf(mkey)), value);
+        }
+    }
+
+    public static class RowKeyReducer extends Reducer<Text, Text, Text, Text> {
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            for (Text value : values) {
+                context.write(key, new Text(value.toString() + "|" + key.toString()));
+            }
+        }
+    }
+
+    public static class FinalMapper extends Mapper<Text, Text, Text, Text> {
+        private static long vkey = 0L;
+        private long mkey = 0L;
+
+        @Override
+        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+            vkey = vkey + 1;
+            mkey = vkey / 10000;
+            context.write(new Text(String.valueOf(mkey)), value);
+        }
+    }
+
+    public static class FinalReducer extends Reducer<Text, Text, Text, Text> {
+        @Override
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            for (Text value : values) {
+                context.write(key, new Text(value.toString() + "|" + key.toString()));
+            }
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         Configuration conf = new Configuration();
@@ -15,5 +68,18 @@ public class MapReduceFlowJob {
         HDFSUtils.delete(inputPath);
         HDFSUtils.delete(rowKeyOutPutPath);
         HDFSUtils.delete(finalPath);
+
+        // rowKeyJob
+        Job rowKeyJob = Job.getInstance(conf, "RowKeyJob");
+        rowKeyJob.setJarByClass(MapReduceFlowJob.class);
+        rowKeyJob.setMapperClass(RowKeyMapper.class);
+        rowKeyJob.setCombinerClass(RowKeyReducer.class);
+        rowKeyJob.setReducerClass(RowKeyReducer.class);
+        rowKeyJob.setOutputKeyClass(Text.class);
+        rowKeyJob.setOutputValueClass(Text.class);
+        rowKeyJob.setInputFormatClass(TextInputFormat.class);
+        rowKeyJob.setOutputFormatClass(SequenceFileOutputFormat.class);
+        FileInputFormat.addInputPath(rowKeyJob, new Path(inputPath));
+        FileOutputFormat.setOutputPath(rowKeyJob, new Path(rowKeyOutPutPath));
     }
 }
