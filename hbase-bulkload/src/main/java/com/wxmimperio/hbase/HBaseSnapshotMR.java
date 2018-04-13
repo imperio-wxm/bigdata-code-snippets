@@ -40,11 +40,11 @@ public class HBaseSnapshotMR {
     public static String OUTPUT_PATH = "outputPath";
 
     public static String TMP_DIR = "tmpDir";
-    public static String DEFAULT_TMP_DIR = "/user/tmp/dataExport";
+    public static String DEFAULT_TMP_DIR = "/wxm/tmp/dataExport";
 
     public static String SNAPSHOT_NAME = "snapshot";
 
-    public static String FAMILY = "family";
+    public static String FAMILY = "c";
     public static String DEFAULT_FAMILY = "";
 
     private String tableName;
@@ -96,6 +96,7 @@ public class HBaseSnapshotMR {
      */
     public static Scan getConfiguredScanForJob(Configuration conf) throws IOException {
         Scan s = new Scan();
+        s.setBatch(5000);
         // Optional arguments.
         // Set Scan Versions
         int versions = conf.getInt(VERSION, 1);
@@ -123,14 +124,13 @@ public class HBaseSnapshotMR {
             s.addFamily(Bytes.toBytes(conf.get(TableInputFormat.SCAN_COLUMN_FAMILY)));
         }
         // Set RowFilter or Prefix Filter if applicable.
-        Filter exportFilter = getExportFilter(conf);
+        /*Filter exportFilter = getExportFilter(conf);
         if (exportFilter != null) {
             LOG.info("Setting Scan Filter for Export.");
             s.setFilter(exportFilter);
-        }
+        }*/
 
         // You may also specify all other filters through Scan interface.
-
         int batching = conf.getInt(EXPORT_BATCHING, -1);
         if (batching != -1) {
             try {
@@ -144,13 +144,13 @@ public class HBaseSnapshotMR {
         return s;
     }
 
-    /**
+    /*
      * Get Filter instance from given configuration.
      *
      * @param conf Hadoop configuration.
      * @return Filter instance.
      */
-    private static Filter getExportFilter(Configuration conf) {
+    /*private static Filter getExportFilter(Configuration conf) {
         Filter exportFilter = null;
         String filterCriteria = conf.get(FILTER_CRITERIA); //args.length > 5) ? args[5]: null;
         if (filterCriteria == null) return null;
@@ -161,7 +161,7 @@ public class HBaseSnapshotMR {
             exportFilter = new PrefixFilter(Bytes.toBytes(filterCriteria));
         }
         return exportFilter;
-    }
+    }*/
 
     public static class HbaseExportMapper extends Mapper<ImmutableBytesWritable, Result, ImmutableBytesWritable, Result> {
         private Configuration conf;
