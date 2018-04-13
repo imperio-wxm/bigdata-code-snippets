@@ -13,6 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hbase.version>1.2.0-cdh5.11.1</hbase.version>
+        <!--<hbase.version>0.94.15-cdh4.7.0</hbase.version>-->
         <hadoop.version>2.6.0-cdh5.11.1</hadoop.version>
         <hive.version>1.1.0-cdh5.11.1</hive.version>
         <hive.scope>compile</hive.scope>
@@ -27,23 +28,29 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
+            <artifactId>hbase</artifactId>
             <version>${hbase.version}</version>
-        </dependency>
+        </dependency>-->
 
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-client</artifactId>
+             <version>${hbase.version}</version>
+         </dependency>
 
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-common</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-server</artifactId>
+             <version>${hbase.version}</version>
+         </dependency>
+
+         <dependency>
+             <groupId>org.apache.hbase</groupId>
+             <artifactId>hbase-common</artifactId>
+             <version>${hbase.version}</version>
+         </dependency>
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
@@ -99,7 +106,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.wxmimperio.hbase.HFileReader</mainClass>
+                                    <mainClass>com.wxmimperio.hbase.HBaseSnapshotReader</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -119,6 +126,12 @@
     </build>
 
     <repositories>
+
+        <repository>
+            <id>cloudera</id>
+            <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+        </repository>
+
         <repository>
             <id>nexus-public</id>
             <url>http://nexus.dw.sdo.com/content/groups/public/</url>
