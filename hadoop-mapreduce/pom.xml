@@ -75,6 +75,14 @@
             <version>${hadoop.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.9.5</version>
+        </dependency>
+
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
@@ -132,6 +140,20 @@
     </dependencies>
 
     <repositories>
+        <repository>
+            <id>nexus-public</id>
+            <url>http://nexus.dw.sdo.com/content/groups/public/</url>
+        </repository>
+
+        <repository>
+            <id>dw-releases</id>
+            <url>http://nexus.dw.sdo.com/content/repositories/dw-releases/</url>
+        </repository>
+
+        <repository>
+            <id>dw-snapshots</id>
+            <url>http://nexus.dw.sdo.com/content/repositories/dw-snapshots/</url>
+        </repository>
         <repository>
             <id>cloudera</id>
             <url>http://repository.cloudera.com/artifactory/cloudera-repos/</url>
