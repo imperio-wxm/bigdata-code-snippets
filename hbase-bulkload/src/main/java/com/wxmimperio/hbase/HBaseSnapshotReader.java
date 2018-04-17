@@ -1,23 +1,24 @@
 package com.wxmimperio.hbase;
 
+import com.google.gson.JsonObject;
 import com.sun.org.apache.commons.logging.Log;
 import com.sun.org.apache.commons.logging.LogFactory;
 import net.iharder.base64.Base64;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.*;
-import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
-import org.apache.hadoop.hbase.protobuf.generated.ClientProtos;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.mapreduce.Counter;
+import org.apache.hadoop.mapreduce.Counters;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
@@ -29,9 +30,8 @@ public class HBaseSnapshotReader {
 
     private static String HBASE_SITE = "hbaes-site.xml";
 
-    public static String convertScanToString(Scan scan) throws IOException {
-        ClientProtos.Scan proto = ProtobufUtil.toScan(scan);
-        return Base64.encodeBytes(proto.toByteArray());
+    public enum Count {
+        TotalCount
     }
 
     public static class RowKeyMapper extends TableMapper<ImmutableBytesWritable, Result> {
@@ -51,9 +51,19 @@ public class HBaseSnapshotReader {
         @Override
         public void reduce(ImmutableBytesWritable key, Iterable<Result> values, Context context) throws IOException, InterruptedException {
             for (Result result : values) {
-                context.write(new Text(Bytes.toString(key.get())), new Text(Bytes.toString(result.getRow())));
+                context.write(new Text(Bytes.toString(key.get())), new Text(convertResultToJson(result).toString()));
+                context.getCounter(Count.TotalCount).increment(1);
             }
         }
+    }
+
+    public static JsonObject convertResultToJson(Result value) {
+        JsonObject jsonObject = new JsonObject();
+        for (Cell cell : value.rawCells()) {
+            jsonObject.addProperty("Rowkey", new String(CellUtil.cloneRow(cell)));
+            jsonObject.addProperty(new String(CellUtil.cloneQualifier(cell)), new String(CellUtil.cloneValue(cell)));
+        }
+        return jsonObject;
     }
 
     public static void main(String[] args) throws Exception {
@@ -69,7 +79,7 @@ public class HBaseSnapshotReader {
         Scan scan = new Scan();
         scan.setBatch(5000);
         scan.setCacheBlocks(false);
-        scan.setTimeRange(1523419740000L, 1523419800000L);
+        //scan.setTimeRange(1523419740000L, 1523419800000L);
 
         Job job = new Job(conf, "HBase Export");
         job.setJarByClass(HBaseSnapshotReader.class);
@@ -94,5 +104,9 @@ public class HBaseSnapshotReader {
         FileOutputFormat.setOutputPath(job, new Path(outputPath));
 
         job.waitForCompletion(true);
+
+        Counters counters = job.getCounters();
+        Counter counter = counters.findCounter(Count.TotalCount);
+        LOG.info("TotalCount = " + counter.getValue());
     }
 }
