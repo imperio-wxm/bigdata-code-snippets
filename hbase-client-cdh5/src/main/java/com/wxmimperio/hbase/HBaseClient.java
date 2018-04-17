@@ -289,8 +289,7 @@ public class HBaseClient {
     }
 
     /**
-     * 1. logicalKey = UUID取前12位 + event_time 取15:10:10 位精确到秒，避免UUID过短导致重复，确保event_time范围内唯一
-     * 2. 实例：fe88b8082312151010
+     * 1. logicalKey = UUID
      *
      * @param data
      * @return
@@ -298,28 +297,30 @@ public class HBaseClient {
     public static String extractUUIdRowKey(JsonObject data) throws Exception {
         String logicalKey;
         try {
-            if (data.has(EVENT_TIME) && data.has(MESSAGE_KEY)) {
-                logicalKey = HBaseClient.deleteCharString(data.get(MESSAGE_KEY).getAsString().substring(0, 13), '-')
-                        + deleteCharString(data.get(EVENT_TIME).getAsString().substring(11, 19), ':');
+            if (data.has(MESSAGE_KEY)) {
+                logicalKey = HBaseClient.deleteCharString(data.get(MESSAGE_KEY).getAsString(), '-');
             } else {
-                logicalKey = HBaseClient.deleteCharString(UUID.randomUUID().toString().substring(0, 13), '-')
-                        + String.valueOf(System.currentTimeMillis()).substring(4, 10);
+                logicalKey = HBaseClient.deleteCharString(UUID.randomUUID().toString(), '-');
+                LOG.error("message not have message_key, data = " + data.toString() + " Auto rowkey = " + logicalKey);
             }
         } catch (Exception e) {
-            throw new Exception("Event_time or message_key not qualified, data = " + data, e);
+            throw new Exception("Message_key not qualified, data = " + data, e);
         }
         return logicalKey;
     }
 
+
     public static void main(String[] args) throws Exception {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("message_key", UUID.randomUUID().toString());
-        jsonObject.addProperty("event_time", eventTimeSdf.get().format(new Date()));
+        jsonObject.addProperty("message_key", "whe43ee4d9-9794-4528-9c85-eea4781773ce");
+        jsonObject.addProperty("event_time", "2018-01-28 10:55:39");
 
         long start = System.currentTimeMillis();
         for (int i = 0; i < 10000000; i++) {
             //extractUUIdRowKey(jsonObject);
         }
+
+        System.out.println(extractUUIdRowKey(jsonObject));
 
         System.out.println("cost = " + (System.currentTimeMillis() - start) / 1000.0);
     }
