@@ -47,6 +47,13 @@
             <version>${hbase.version}</version>
             <scope>${hbase.scope}</scope>
         </dependency>
+
+
+        <!--<dependency>
+            <groupId>org.apache.phoenix</groupId>
+            <artifactId>phoenix-spark</artifactId>
+            <version>4.13.0-cdh5.11.1-sdg-1.0.0-RELEASE</version>
+        </dependency>-->
     </dependencies>
 
     <repositories>
