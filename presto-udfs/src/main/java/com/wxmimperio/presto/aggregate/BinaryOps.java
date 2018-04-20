@@ -1,5 +1,19 @@
 package com.wxmimperio.presto.aggregate;
 
+import com.facebook.presto.operator.Description;
+import com.facebook.presto.operator.aggregation.AggregationFunction;
+import com.facebook.presto.operator.aggregation.CombineFunction;
+import com.facebook.presto.operator.aggregation.InputFunction;
+import com.facebook.presto.operator.aggregation.OutputFunction;
+import com.facebook.presto.operator.aggregation.state.SliceState;
+import com.facebook.presto.spi.block.BlockBuilder;
+import com.facebook.presto.spi.type.StandardTypes;
+import com.facebook.presto.spi.type.VarcharType;
+import com.facebook.presto.type.SqlType;
+import io.airlift.slice.Slice;
+import io.airlift.slice.Slices;
+import org.apache.commons.lang3.StringUtils;
+
 @AggregationFunction("binary_or")
 @Description("This function will turn all character except 0 to 1.")
 public class BinaryOps {
