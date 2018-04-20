@@ -6,6 +6,7 @@ import com.facebook.presto.spi.Plugin;
 import com.facebook.presto.spi.type.TypeManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.wxmimperio.presto.aggregate.BinaryOps;
 
 import javax.inject.Inject;
 
@@ -34,7 +35,8 @@ public class TestFunctionsPlugin implements Plugin {
                     .scalars(Ip2Long.class)
                     .scalars(TimestampToDate.class)
                     .scalars(DateSub.class)
-                    .scalars(DateOpts.class);
+                    .scalars(DateOpts.class)
+                    .aggregate(BinaryOps.class);
             FunctionFactory factory = () -> builder.getFunctions();
             return ImmutableList.of(type.cast(factory));
         } else {
