@@ -1,5 +1,9 @@
 package com.wxmimperio.phoenix;
 
+import org.apache.phoenix.shaded.org.apache.commons.configuration.Configuration;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class PoolConfig {
@@ -41,9 +45,17 @@ public class PoolConfig {
     public String DATE_FORMAT_TIME_ZONE = "phoenix.query.dateFormatTimeZone";
 
     public PoolConfig() {
-        this.connectionString = "url";
+        String driver = "org.apache.phoenix.jdbc.PhoenixDriver";
         this.maxConnectionsToKeepAlive = 64;
         Properties props = new Properties();
+        InputStream input = Configuration.class.getResourceAsStream("/phoenix-site.properties");
+        try {
+            props.load(input);
+            Class.forName(driver);
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+        this.connectionString = props.getProperty("phoenix.query.url");
         props.setProperty(USERNAME, "");
         props.setProperty(PASSWORD, "");
         props.setProperty(DATE_FORMAT_TIME_ZONE, "GMT+8:00");

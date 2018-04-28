@@ -33,18 +33,22 @@ public class PhoenixPoolFactory implements PooledObjectFactory<Connection> {
         } else {
             pDelegateConnection = new PDelegateConnection(DriverManager.getConnection(poolConfig.connectionString));
         }
+        LOG.info("Making new connection....");
         return new DefaultPooledObject<>(pDelegateConnection);
     }
 
     @Override
     public void destroyObject(PooledObject<Connection> pooledObject) throws Exception {
         pooledObject.getObject().close();
+        LOG.info("Connection closing....");
     }
 
     @Override
     public boolean validateObject(PooledObject<Connection> pooledObject) {
         try {
-            return !pooledObject.getObject().isClosed() && pooledObject.getObject().isValid(1);
+            boolean validate = !pooledObject.getObject().isClosed() && pooledObject.getObject().isValid(1);
+            LOG.info("validate = " + validate);
+            return validate;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -78,6 +82,7 @@ public class PhoenixPoolFactory implements PooledObjectFactory<Connection> {
             // don't actually close this connection, just return it back to pool
             //putConnection(this);
             pool.returnObject(this);
+            LOG.info("Return connection!");
         }
 
         @Override
