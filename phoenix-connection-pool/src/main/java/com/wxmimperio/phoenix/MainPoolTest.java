@@ -24,12 +24,13 @@ public class MainPoolTest {
         LOG.info("getNumIdle = " + phoenixPool.getNumIdle());
 
         int index = 0;
+        boolean isFirstTime = true;
         while (index < 10000000) {
             List<Future> futureList = Lists.newArrayList();
             for (int i = 1; i <= 30; i++) {
                 LOG.info("run getNumActive = " + phoenixPool.getNumActive());
                 LOG.info("run getNumIdle = " + phoenixPool.getNumIdle());
-                if (i % 10 == 0) {
+                if (i % 10 == 0 && !isFirstTime) {
                     LOG.info("Sleep....");
                     Thread.sleep(60 * 1000 * 5);
                 }
@@ -48,6 +49,8 @@ public class MainPoolTest {
                 }
             });
             index++;
+            // 保证第一次30个全部执行，之后再进行sleep
+            isFirstTime = false;
             LOG.info("index ====== " + index + " finish!!!");
         }
         phoenixPool.closePool();
@@ -68,8 +71,6 @@ public class MainPoolTest {
             String sql = "select * from PHOENIX_APOLLO.SWY_CHARACTER_LOGIN_GLOG limit 1";
             try (Connection connection = phoenixPool.getConnection();
                  Statement pst = connection.createStatement()) {
-                LOG.info("select getNumActive = " + phoenixPool.getNumActive());
-                LOG.info("select getNumIdle = " + phoenixPool.getNumIdle());
                 ResultSet resultSet = pst.executeQuery(sql);
                 ResultSetMetaData meta = resultSet.getMetaData();
                 while (resultSet.next()) {
@@ -78,9 +79,10 @@ public class MainPoolTest {
                         String colName = meta.getColumnName(i);
                         jsonObject.put(colName, String.valueOf(resultSet.getObject(colName)));
                     }
-                    LOG.info(Thread.currentThread().getName() + " running....");
                     LOG.info(jsonObject.toJSONString());
                 }
+                LOG.info(Thread.currentThread().getName() + "select getNumActive = " + phoenixPool.getNumActive());
+                LOG.info(Thread.currentThread().getName() + "select getNumIdle = " + phoenixPool.getNumIdle());
             } catch (Exception e) {
                 e.printStackTrace();
             }
