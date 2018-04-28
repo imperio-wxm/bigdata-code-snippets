@@ -15,33 +15,41 @@ import java.util.concurrent.*;
 
 public class MainPoolTest {
     private static final Logger LOG = LoggerFactory.getLogger(MainPoolTest.class);
-    private static ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private static ExecutorService executorService = Executors.newFixedThreadPool(50);
 
     public static void main(String[] args) throws Exception {
+
         PhoenixPool phoenixPool = PhoenixPool.getInstance();
         LOG.info("getNumActive = " + phoenixPool.getNumActive());
         LOG.info("getNumIdle = " + phoenixPool.getNumIdle());
 
-        List<Future> futureList = Lists.newArrayList();
-        for (int i = 0; i < 10; i++) {
-            if (i >= 5) {
-                Thread.sleep(3000);
+        int index = 0;
+        while (index < 10000000) {
+            List<Future> futureList = Lists.newArrayList();
+            for (int i = 1; i <= 30; i++) {
+                LOG.info("run getNumActive = " + phoenixPool.getNumActive());
+                LOG.info("run getNumIdle = " + phoenixPool.getNumIdle());
+                if (i % 10 == 0) {
+                    LOG.info("Sleep....");
+                    Thread.sleep(60 * 1000 * 5);
+                }
+                futureList.add(executorService.submit(new Task(phoenixPool)));
             }
-            futureList.add(executorService.submit(new Task(phoenixPool)));
+
+            futureList.stream().forEach(future -> {
+                try {
+                    LOG.info("done getNumActive = " + phoenixPool.getNumActive());
+                    LOG.info("done getNumIdle = " + phoenixPool.getNumIdle());
+                    LOG.info("Result = " + future.get());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            });
+            index++;
+            LOG.info("index ====== " + index + " finish!!!");
         }
-
-        futureList.stream().forEach(future -> {
-            try {
-                LOG.info("Result = " + future.get());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        });
-
-        LOG.info("getNumActive = " + phoenixPool.getNumActive());
-        LOG.info("getNumIdle = " + phoenixPool.getNumIdle());
         phoenixPool.closePool();
         LOG.info("close getNumActive = " + phoenixPool.getNumActive());
         LOG.info("close getNumIdle = " + phoenixPool.getNumIdle());
