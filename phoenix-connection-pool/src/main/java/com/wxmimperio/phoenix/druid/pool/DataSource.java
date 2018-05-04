@@ -28,7 +28,7 @@ public class DataSource {
         // 初始化时建立物理连接的个数。初始化发生在显示调用init方法，或者第一次getConnection时
         dataSource.setInitialSize(1);
         // 最大连接池数量
-        dataSource.setMaxActive(1);
+        dataSource.setMaxActive(2);
         // 最小连接池数量
         dataSource.setMinIdle(1);
         // 用来检测连接是否有效的sql，要求是一个查询语句。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会其作用。
