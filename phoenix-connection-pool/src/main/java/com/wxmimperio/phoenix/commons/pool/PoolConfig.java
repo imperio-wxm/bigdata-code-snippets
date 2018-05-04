@@ -1,4 +1,4 @@
-package com.wxmimperio.phoenix;
+package com.wxmimperio.phoenix.commons.pool;
 
 import org.apache.phoenix.shaded.org.apache.commons.configuration.Configuration;
 

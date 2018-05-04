@@ -1,4 +1,4 @@
-package com.wxmimperio.phoenix;
+package com.wxmimperio.phoenix.commons.pool;
 
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;

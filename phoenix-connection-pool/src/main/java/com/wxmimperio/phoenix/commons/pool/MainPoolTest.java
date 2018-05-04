@@ -1,8 +1,7 @@
-package com.wxmimperio.phoenix;
+package com.wxmimperio.phoenix.commons.pool;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,6 @@ public class MainPoolTest {
     private static ExecutorService executorService = Executors.newFixedThreadPool(50);
 
     public static void main(String[] args) throws Exception {
-
         PhoenixPool phoenixPool = PhoenixPool.getInstance();
         LOG.info("getNumActive = " + phoenixPool.getNumActive());
         LOG.info("getNumIdle = " + phoenixPool.getNumIdle());

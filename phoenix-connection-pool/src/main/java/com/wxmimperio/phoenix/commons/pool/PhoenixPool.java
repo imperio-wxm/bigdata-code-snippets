@@ -1,4 +1,4 @@
-package com.wxmimperio.phoenix;
+package com.wxmimperio.phoenix.commons.pool;
 
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -24,7 +24,7 @@ public class PhoenixPool {
     private PhoenixPool() {
         GenericObjectPoolConfig conf = new GenericObjectPoolConfig();
         // 最大连对象数，创建时使用
-        conf.setMaxTotal(ZOOKEEPER_CONN_POOL_COUNT);
+        conf.setMaxTotal(50);
         // 最大空闲数，实际pool中的可用数量，回收时使用
         conf.setMaxIdle(40);
         // 在检测空闲对象线程检测到对象不需要移除时，是否检测对象的有效性。true是，默认值是false。
