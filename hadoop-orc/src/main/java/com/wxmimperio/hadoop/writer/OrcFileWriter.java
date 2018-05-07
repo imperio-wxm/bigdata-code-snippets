@@ -31,7 +31,6 @@ public class OrcFileWriter {
             int rowCount;
             String[] cols;
             for (String line : buffer) {
-                rowCount = batch.size++;
                 totalLine++;
                 cols = line.split(DEFAULT_COL_SPLITTER, -1);
                 if (cols.length != schema.getFieldNames().size()) {
@@ -39,14 +38,15 @@ public class OrcFileWriter {
                 } else {
                     for (int i = 0; i < schema.getFieldNames().size(); i++) {
                         setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], rowCount, cols[i]);
-                        if (batch.size == batch.getMaxSize()) {
-                            try {
-                                writer.addRowBatch(batch);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            } finally {
-                                batch.reset();
-                            }
+                    }
+                    rowCount = batch.size++;
+                    if (batch.size == batch.getMaxSize()) {
+                        try {
+                            writer.addRowBatch(batch);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            batch.reset();
                         }
                     }
                 }
@@ -69,7 +69,7 @@ public class OrcFileWriter {
     }
 
     public static void writeData(Writer writer, TypeDescription schema, List<String> buffer) throws Exception {
-        VectorizedRowBatch batch = schema.createRowBatch(1000);
+        VectorizedRowBatch batch = schema.createRowBatch(10000);
         String[] cols;
         for (String line : buffer) {
             cols = line.split(DEFAULT_COL_SPLITTER, -1);
