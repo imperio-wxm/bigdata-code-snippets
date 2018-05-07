@@ -28,7 +28,6 @@ public class OrcFileWriter {
         long totalLine = 0L;
         try (Writer writer = OrcFile.createWriter(new Path(hdfsDesPath), OrcFile.writerOptions(FileSystemUtil.getConf()).setSchema(schema).compress(CompressionKind.SNAPPY))) {
             VectorizedRowBatch batch = schema.createRowBatch(writeBatch);
-            int rowCount;
             String[] cols;
             for (String line : buffer) {
                 totalLine++;
@@ -37,9 +36,9 @@ public class OrcFileWriter {
                     LOG.error("Write orc error, data = " + line);
                 } else {
                     for (int i = 0; i < schema.getFieldNames().size(); i++) {
-                        setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], rowCount, cols[i]);
+                        setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], batch.size, cols[i]);
                     }
-                    rowCount = batch.size++;
+                    batch.size++;
                     if (batch.size == batch.getMaxSize()) {
                         try {
                             writer.addRowBatch(batch);
