@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.List;
 
 public class OrcFileWriter {
@@ -33,25 +34,67 @@ public class OrcFileWriter {
                 rowCount = batch.size++;
                 totalLine++;
                 cols = line.split(DEFAULT_COL_SPLITTER, -1);
-                for (int i = 0; i < cols.length; i++) {
-                    setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], rowCount, cols[i].trim());
-                    if (batch.size == batch.getMaxSize()) {
-                        try {
-                            writer.addRowBatch(batch);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            batch.reset();
+                if (cols.length != schema.getFieldNames().size()) {
+                    LOG.error("Write orc error, data = " + line);
+                } else {
+                    for (int i = 0; i < schema.getFieldNames().size(); i++) {
+                        setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], rowCount, cols[i]);
+                        if (batch.size == batch.getMaxSize()) {
+                            try {
+                                writer.addRowBatch(batch);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            } finally {
+                                batch.reset();
+                            }
                         }
                     }
                 }
             }
             if (batch.size > 0) {
                 writer.addRowBatch(batch);
+                batch.reset();
             }
             LOG.info("finish write orc file for " + hdfsDesPath);
         }
         return totalLine;
+    }
+
+    public static Writer getOrcWriter(String hdfsDesPath, TypeDescription schema) throws Exception {
+        Writer writer = OrcFile.createWriter(
+                new Path(hdfsDesPath),
+                OrcFile.writerOptions(FileSystemUtil.getConf()).setSchema(schema).compress(CompressionKind.SNAPPY)
+        );
+        return writer;
+    }
+
+    public static void writeData(Writer writer, TypeDescription schema, List<String> buffer) throws Exception {
+        VectorizedRowBatch batch = schema.createRowBatch(500);
+        String[] cols;
+        for (String line : buffer) {
+            cols = line.split(DEFAULT_COL_SPLITTER, -1);
+            if (cols.length != schema.getFieldNames().size()) {
+                LOG.error("Write orc error, data = " + line);
+            } else {
+                for (int i = 0; i < schema.getFieldNames().size(); i++) {
+                    setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], batch.size, cols[i].trim());
+                    if (batch.size == batch.getMaxSize()) {
+                        try {
+                            writer.addRowBatch(batch);
+                        } catch (Exception e) {
+                            LOG.error("Add data error! data = " + Arrays.asList(cols) + ", writer = " + writer + ", batch size = " + batch.size, e);
+                        } finally {
+                            batch.reset();
+                        }
+                    }
+                }
+                batch.size++;
+            }
+        }
+        if (batch.size > 0) {
+            writer.addRowBatch(batch);
+            batch.reset();
+        }
     }
 
     private static void setColumnVectorVal(TypeDescription td, ColumnVector cv, int rc, String val) {
@@ -67,7 +110,6 @@ public class OrcFileWriter {
                         break;
                     case INT:
                     case LONG:
-                    case SHORT:
                     case BYTE:
                         ((LongColumnVector) cv).vector[rc] = Long.parseLong(val);
                         break;
@@ -78,7 +120,7 @@ public class OrcFileWriter {
                     case STRING:
                     case VARCHAR:
                     case BINARY:
-                        ((BytesColumnVector) cv).vector[rc] = val.getBytes(DEFAULT_CHARSET);
+                        ((BytesColumnVector) cv).setVal(rc, val.getBytes(DEFAULT_CHARSET));
                         break;
                     default:
                         throw new UnsupportedOperationException(td.getCategory() + ":" + val);
