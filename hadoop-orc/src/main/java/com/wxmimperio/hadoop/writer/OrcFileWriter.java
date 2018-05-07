@@ -69,7 +69,7 @@ public class OrcFileWriter {
     }
 
     public static void writeData(Writer writer, TypeDescription schema, List<String> buffer) throws Exception {
-        VectorizedRowBatch batch = schema.createRowBatch(500);
+        VectorizedRowBatch batch = schema.createRowBatch(1000);
         String[] cols;
         for (String line : buffer) {
             cols = line.split(DEFAULT_COL_SPLITTER, -1);
@@ -78,17 +78,18 @@ public class OrcFileWriter {
             } else {
                 for (int i = 0; i < schema.getFieldNames().size(); i++) {
                     setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], batch.size, cols[i].trim());
-                    if (batch.size == batch.getMaxSize()) {
-                        try {
-                            writer.addRowBatch(batch);
-                        } catch (Exception e) {
-                            LOG.error("Add data error! data = " + Arrays.asList(cols) + ", writer = " + writer + ", batch size = " + batch.size, e);
-                        } finally {
-                            batch.reset();
-                        }
+                }
+                // 行数，最大为createRowBatch—> maxSize
+                batch.size++;
+                if (batch.size == batch.getMaxSize()) {
+                    try {
+                        writer.addRowBatch(batch);
+                    } catch (Exception e) {
+                        LOG.error("Add data error! data = " + Arrays.asList(cols) + ", writer = " + writer + ", batch size = " + batch.size, e);
+                    } finally {
+                        batch.reset();
                     }
                 }
-                batch.size++;
             }
         }
         if (batch.size > 0) {
