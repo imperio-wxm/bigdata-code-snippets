@@ -4,15 +4,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.hive.ql.exec.vector.BytesColumnVector;
-import org.apache.hadoop.hive.ql.exec.vector.ColumnVector;
-import org.apache.hadoop.hive.ql.exec.vector.DoubleColumnVector;
-import org.apache.hadoop.hive.ql.exec.vector.LongColumnVector;
+import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.io.*;
-import org.omg.CORBA.PUBLIC_MEMBER;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +24,7 @@ public class HDFSUtils {
     public static final String EMPTY = "";
     private static Configuration conf = null;
     private static FileSystem fileSystem = null;
+    private static String PREFIX = "/user/hive/warehouse/dw.db/";
 
     static {
         Properties prop = new Properties();
@@ -61,6 +58,18 @@ public class HDFSUtils {
         return conf;
     }
 
+    public static void deleteFiles(String filePath) throws Exception {
+        FileSystem hdfs = HDFSUtils.getInstance();
+        Path path = new Path(filePath);
+        boolean isExists = hdfs.exists(path);
+        if (isExists) {
+            boolean isDel = hdfs.delete(path, true);
+            LOG.info(filePath + "  delete? \t" + isDel);
+        } else {
+            LOG.error(filePath + "  exist? \t" + false);
+        }
+    }
+
     public static long getSize(String path) throws Exception {
         List<String> fileList = getFileList(path);
         FileSystem fs = HDFSUtils.getByUri(URI.create(path));
@@ -70,6 +79,51 @@ public class HDFSUtils {
         }
         LOG.info("Get path = {}, all size = {}", path, size);
         return size;
+    }
+
+    public static String getInputPath(String tableName, String partDate) {
+        return PREFIX + tableName + "/sequence/part_date=" + partDate;
+    }
+
+    public static String getOutputPath(String tableName, String partDate) {
+        return PREFIX + tableName + "/de_orc/part_date=" + partDate;
+    }
+
+    public static String getRealPath(String tableName, String partDate) {
+        return PREFIX + tableName + "/part_date=" + partDate;
+    }
+
+    public static String getMvPath(String path) {
+        return path.replace("/de_orc", "");
+    }
+
+    public static boolean isFileClosed(String filePath) throws IOException {
+        FileSystem fs = HDFSUtils.getInstance();
+        if (!fs.exists(new Path(filePath))) {
+            return false;
+        }
+        return ((DistributedFileSystem) fs).isFileClosed(new Path(filePath));
+    }
+
+    public static void renameFile(String oldFile, String newFile) {
+        try {
+            FileSystem hdfs = HDFSUtils.getInstance();
+            Path oldPath = new Path(oldFile);
+            Path newPath = new Path(newFile);
+            Path filePath = new Path(newFile.substring(0, newFile.lastIndexOf("/")));
+            if (!hdfs.exists(filePath)) {
+                hdfs.mkdirs(filePath);
+                LOG.info("Create  path = " + filePath);
+            }
+            boolean isRename = hdfs.rename(oldPath, newPath);
+            if (isRename) {
+                LOG.info("oldFile " + oldPath + " to newFile " + newFile + " Success!");
+            } else {
+                LOG.error("oldFile " + oldPath + " to newFile " + newFile + " Error!");
+            }
+        } catch (Exception e) {
+            LOG.error("Rename file = " + oldFile + " error!", e);
+        }
     }
 
     public static List<String> getFileList(String dataPath) throws Exception {

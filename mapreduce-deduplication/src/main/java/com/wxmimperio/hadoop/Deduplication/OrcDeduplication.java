@@ -1,5 +1,6 @@
 package com.wxmimperio.hadoop.Deduplication;
 
+import com.wxmimperio.hadoop.Deduplication.utils.DateUtil;
 import com.wxmimperio.hadoop.Deduplication.utils.HDFSUtils;
 import com.wxmimperio.hadoop.Deduplication.utils.HiveUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -82,11 +83,23 @@ public class OrcDeduplication {
 
 
     public static void main(String[] args) {
-        String inputPath = args[0];
-        String outputPath = args[1];
-        String tableName = args[2];
+        String tableName = args[0];
+        String dataDate = args[1];
+        String partDate = DateUtil.getPartitionString(DateUtil.parseDateString(dataDate));
+        String inputPath = HDFSUtils.getInputPath(tableName, partDate);
+        String outputPath = HDFSUtils.getOutputPath(tableName, partDate);
+        String realPath = HDFSUtils.getRealPath(tableName, partDate);
+
+        LOG.info("tableName = " + tableName);
+        LOG.info("partDate = " + partDate);
+        LOG.info("inputPath = " + inputPath);
+        LOG.info("outputPath = " + outputPath);
+        LOG.info("realPath = " + realPath);
 
         try {
+            //delete output path
+            HDFSUtils.deleteFiles(outputPath);
+
             int fileNum = HDFSUtils.getFileList(inputPath).size();
             if (fileNum <= 0) {
                 LOG.error("Input = {} is empty, can not run job.", inputPath);
@@ -130,6 +143,20 @@ public class OrcDeduplication {
             if (!job.waitForCompletion(true)) {
                 throw new IOException("Error with job!");
             }
+
+            // delete output path
+            HDFSUtils.deleteFiles(realPath);
+
+            // remove file
+            for (String path : HDFSUtils.getFileList(outputPath)) {
+                if (HDFSUtils.isFileClosed(path)) {
+                    String mvPath = HDFSUtils.getMvPath(path);
+                    HDFSUtils.renameFile(path, mvPath);
+                }
+            }
+
+            // delete output path
+            HDFSUtils.deleteFiles(outputPath);
 
             Counters counters = job.getCounters();
             Counter counter = counters.findCounter(Count.TotalCount);
