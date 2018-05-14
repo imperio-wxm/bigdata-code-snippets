@@ -50,16 +50,23 @@ public class OrcDeduplication {
     public static class DeduplicationReducer extends Reducer<Text, Text, NullWritable, Writable> {
         private final OrcSerde orcSerde = new OrcSerde();
         private Writable row;
+        private TypeInfo typeInfo;
+        private SettableStructObjectInspector inspector;
+        private List<StructField> fields;
+        private OrcStruct orcStruct;
+
+        @Override
+        protected void setup(Context context) {
+            String schemaStr = context.getConfiguration().get("schema");
+            typeInfo = TypeInfoUtils.getTypeInfoFromTypeString(schemaStr);
+            inspector = (SettableStructObjectInspector) OrcStruct.createObjectInspector(typeInfo);
+            fields = (List<StructField>) inspector.getAllStructFieldRefs();
+            orcStruct = (OrcStruct) inspector.create();
+            orcStruct.setNumFields(fields.size());
+        }
 
         @Override
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            String schemaStr = context.getConfiguration().get("schema");
-            TypeInfo typeInfo = TypeInfoUtils.getTypeInfoFromTypeString(schemaStr);
-            SettableStructObjectInspector inspector = (SettableStructObjectInspector) OrcStruct.createObjectInspector(typeInfo);
-            List<StructField> fields = (List<StructField>) inspector.getAllStructFieldRefs();
-            OrcStruct orcStruct = (OrcStruct) inspector.create();
-            orcStruct.setNumFields(fields.size());
-
             Text value = values.iterator().next();
             String[] message = value.toString().split("\t", -1);
             for (int i = 0; i < message.length; i++) {
