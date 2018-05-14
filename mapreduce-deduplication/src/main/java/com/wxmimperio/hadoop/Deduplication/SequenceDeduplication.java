@@ -15,13 +15,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import static com.wxmimperio.hadoop.Deduplication.utils.HDFSUtils.EMPTY;
+
 /**
  * Created by weiximing.imperio on 2017/7/12.
  */
-public class FileDeduplication {
-    private static final Logger LOG = LoggerFactory.getLogger(FileDeduplication.class);
+public class SequenceDeduplication {
+    private static final Logger LOG = LoggerFactory.getLogger(SequenceDeduplication.class);
     private static final String MAPRED_OUTPUT_COMPRESS = "mapred.output.compress";
-    private static final String EMPTY = "";
     private static final String CORE_SITE_XML = "core-site.xml";
     private static final String HDFS_SITE_XML = "hdfs-site.xml";
 
@@ -66,8 +67,8 @@ public class FileDeduplication {
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
 			// inputFormat：org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat
-            LOG.error("Usage: java -cp xxx.jar com.xxx.FileDeduplication <inPath> <inputFormat> <outPath>");
-            System.exit(2);
+            LOG.error("Usage: hadoop jar xxx.jar <inPath> <inputFormat> <outPath>");
+            System.exit(1);
         }
 
         Class inputFormat = Class.forName(otherArgs[1]);
@@ -76,7 +77,7 @@ public class FileDeduplication {
         deleteFile(conf, otherArgs[2]);
 
         Job job = Job.getInstance();
-        job.setJarByClass(FileDeduplication.class);
+        job.setJarByClass(SequenceDeduplication.class);
         job.setMapperClass(DeduplicationMapper.class);
         job.setReducerClass(DeduplicationReducer.class);
         job.setOutputKeyClass(Text.class);
