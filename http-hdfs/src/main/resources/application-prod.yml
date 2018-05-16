@@ -1,3 +1,8 @@
 spring.application.name: http-hdfs
-server.port: 8900
+server.port: 8901
 debug: false
+
+xml:
+  site:
+    core: /etc/hadoop/conf/core-site.xml
+    hdfs: /etc/hadoop/conf/hdfs-site.xml
