@@ -5,6 +5,7 @@ import com.wxmimperio.hdfs.config.HdfsConfig;
 import com.wxmimperio.hdfs.service.FileSystemAccessService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FileStatus;
@@ -44,14 +45,26 @@ public class HdfsOpsController {
     }
 
     @ApiOperation("获取文件列表")
-    @ApiImplicitParam(name = "path", value = "hdfs路径")
-    @GetMapping("list/{path}")
-    public List<String> listFilePath(@PathVariable("path") String path, HttpServletResponse response) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "path", value = "hdfs路径"),
+            @ApiImplicitParam(name = "lineNum", value = "读取行数")
+    })
+    @GetMapping("list/{path}/{lineNum}")
+    public List<String> listFilePath(@PathVariable("path") String path, @PathVariable("lineNum") Integer lineNum, HttpServletResponse response) {
         path = path.replaceAll("\\|", "/");
         final Path inPath = new Path(path);
+        String newLine = System.getProperty("line.separator");
 
         System.out.println(path);
 
+        String fileName = "1.txt";
+        response.setHeader("content-type", "application/octet-stream");
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName);
+
+        long startTime = System.currentTimeMillis();
+
+        OutputStream out = null;
         try {
             UserGroupInformation user = UserGroupInformation.createRemoteUser("hadoop");
             //the real use is the one that has the Kerberos credentials needed for
@@ -61,7 +74,6 @@ public class HdfsOpsController {
                 user = UserGroupInformation.getLoginUser();
             }
             fs = fileSystemAccessService.createFileSystem("hadoop", null);
-            OutputStream out = null;
             out = user.doAs((PrivilegedExceptionAction<OutputStream>) () -> {
                 SequenceFile.Reader reader = null;
                 OutputStream outputStream = response.getOutputStream();
@@ -73,18 +85,27 @@ public class HdfsOpsController {
                             reader.getValueClass(), fileSystemAccessService.getFileSystemConfiguration());
                     long index = 0L;
                     while (reader.next(inKey, inValue)) {
-                        if (index++ > 10) {
+                        if (lineNum != 0 && index++ > lineNum) {
                             break;
                         }
-                        System.out.println(inValue.toString());
                         outputStream.write(inValue.toString().getBytes());
+                        outputStream.write(newLine.getBytes());
                     }
                 }
                 return outputStream;
             });
-            out.close();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (out != null) {
+                try {
+                    fileSystemAccessService.releaseFileSystem(fs);
+                    out.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            System.out.println("cost = " + (System.currentTimeMillis() - startTime) + " ms");
         }
         return Lists.newArrayList();
     }
