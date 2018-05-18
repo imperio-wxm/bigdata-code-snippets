@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import com.wxmimperio.hdfs.config.HdfsConfig;
 import com.wxmimperio.hdfs.service.FileSystemAccessService;
 import io.swagger.annotations.*;
-import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -16,12 +15,10 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.security.PrivilegedExceptionAction;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -172,15 +169,58 @@ public class HdfsOpsController {
     }
 
     @ApiOperation("获取文件")
-    @ApiImplicitParam(name = "name", value = "hdfs名称")
-    @PostMapping("list/{name}")
-    public void listFile(@PathVariable("name") String name) {
-        try {
-            fileSystemAccessService.releaseFileSystem(fs);
-        } catch (IOException e) {
-            e.printStackTrace();
+    @PostMapping("upload")
+    public void listFile(@RequestParam("file") MultipartFile multipartFile,
+                         @RequestParam("type") String fileType) {
+        String str = "/wxm/" + multipartFile.getOriginalFilename() + "_" + UUID.randomUUID().toString();
+        System.out.println(str);
+        Path path = new Path(str);
+        if (!multipartFile.isEmpty()) {
+            InputStreamReader isr = null;
+            BufferedReader br = null;
+            SequenceFile.Writer writer = null;
+            try {
+                String line = "";
+                // 从文件系统中的某个文件中获取字节
+                isr = new InputStreamReader(multipartFile.getInputStream());
+                br = new BufferedReader(isr);// 从字符输入流中读取文件中的内容,封装了一个new InputStreamReader的对象
+
+                Text value = new Text();
+                Text key = new Text();
+                writer = SequenceFile.createWriter(
+                        fileSystemAccessService.getFileSystemConfiguration(),
+                        SequenceFile.Writer.file(path),
+                        SequenceFile.Writer.keyClass(key.getClass()),
+                        SequenceFile.Writer.valueClass(value.getClass()),
+                        SequenceFile.Writer.compression(SequenceFile.CompressionType.BLOCK)
+                );
+
+                switch (fileType) {
+                    case "sequence":
+                        long index = 0L;
+                        while ((line = br.readLine()) != null) {
+                            key.set(String.valueOf(index));
+                            value.set(line);
+                            writer.append(key, value);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    isr.close();
+                    br.close();
+                    writer.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            System.out.println("file not exist");
         }
-        System.out.println(name);
     }
 
     @ApiOperation("上传文件")
