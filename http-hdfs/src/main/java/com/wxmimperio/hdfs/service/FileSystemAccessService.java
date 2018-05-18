@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -95,6 +96,19 @@ public class FileSystemAccessService implements FileSystemAccess {
             }
             return ret;
         }
+    }
+
+    @Scheduled(fixedRate = 30 * 1000)
+    private void FileSystemCachePurger() {
+        int count = 0;
+        for (CachedFileSystem cacheFs : fsCache.values()) {
+            try {
+                count += cacheFs.purgeIfIdle() ? 1 : 0;
+            } catch (Throwable ex) {
+                System.out.println(("Error while purging filesystem, " + ex.toString() + ex.getMessage()));
+            }
+        }
+        System.out.println("Purged [{}} filesystem instances" + count);
     }
 
     protected FileSystem createFileSystem(Configuration namenodeConf)
