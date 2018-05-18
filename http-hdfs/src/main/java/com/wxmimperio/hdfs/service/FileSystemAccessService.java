@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class FileSystemAccessService implements FileSystemAccess {
 
     private AtomicInteger unmanagedFileSystems = new AtomicInteger();
-    private long purgeTimeout = 0L;
+    private long purgeTimeout = 3 * 1000L;
     private Configuration conf;
     private static final String HTTPFS_FS_USER = "httpfs.fs.user";
     private HdfsConfig hdfsConfig;
@@ -76,6 +76,7 @@ public class FileSystemAccessService implements FileSystemAccess {
                     lastUse = -1;
                 } else {
                     lastUse = System.currentTimeMillis();
+                    System.out.println(lastUse);
                 }
             }
             System.out.println("fs count = " + count);
