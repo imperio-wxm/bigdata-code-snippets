@@ -2,6 +2,7 @@ package com.wxmimperio.hdfs.web;
 
 import com.google.common.collect.Lists;
 import com.wxmimperio.hdfs.config.HdfsConfig;
+import com.wxmimperio.hdfs.filter.FileSystemReleaseFilter;
 import com.wxmimperio.hdfs.service.FileSystemAccessService;
 import io.swagger.annotations.*;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -76,6 +77,7 @@ public class HdfsOpsController {
                 user = UserGroupInformation.getLoginUser();
             }
             fs = fileSystemAccessService.createFileSystem("hadoop", null);
+            FileSystemReleaseFilter.setFileSystem(fs);
             out = user.doAs((PrivilegedExceptionAction<OutputStream>) () -> {
                 SequenceFile.Reader reader = null;
                 SequenceFile.Writer writer = null;
@@ -173,6 +175,7 @@ public class HdfsOpsController {
     public void listFile(@RequestParam("file") MultipartFile multipartFile,
                          @RequestParam("type") String fileType) {
         String str = "/wxm/" + multipartFile.getOriginalFilename() + "_" + UUID.randomUUID().toString();
+
         System.out.println(str);
         Path path = new Path(str);
         if (!multipartFile.isEmpty()) {
@@ -180,6 +183,10 @@ public class HdfsOpsController {
             BufferedReader br = null;
             SequenceFile.Writer writer = null;
             try {
+
+                FileSystem fs = fileSystemAccessService.createFileSystem("hadoop", null);
+                FileSystemReleaseFilter.setFileSystem(fs);
+
                 String line = "";
                 // 从文件系统中的某个文件中获取字节
                 isr = new InputStreamReader(multipartFile.getInputStream());
