@@ -5,6 +5,7 @@ import com.wxmimperio.hadoop.utils.FileSystemUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.ql.exec.vector.*;
+import org.apache.hadoop.mapred.InputFormat;
 import org.apache.orc.OrcFile;
 import org.apache.orc.Reader;
 import org.apache.orc.RecordReader;
@@ -32,7 +33,7 @@ public class OrcFileReader implements Iterable<String> {
         Reader reader = OrcFile.createReader(new Path(uri), OrcFile.readerOptions(FileSystemUtil.getConf()));
         recordReader = reader.rows();
         TypeDescription schema = reader.getSchema();
-        batch = schema.createRowBatch();
+        batch = schema.createRowBatch(10);
         flatSchema = schema.getChildren();
     }
 
@@ -91,8 +92,9 @@ public class OrcFileReader implements Iterable<String> {
                 for (int i = 0; i < cvs.length; i++) {
                     lineArray.add(parseColumn(flatSchema.get(i), cvs[i], index));
                 }
-
-                return StringUtils.join(lineArray, "\t");
+                String line = StringUtils.join(lineArray, "\t");
+                System.out.println(line);
+                return line;
             }
 
             /**

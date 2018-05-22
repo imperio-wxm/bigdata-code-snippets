@@ -57,7 +57,11 @@ public class OrcFileMain {
         // read test
         OrcFileReader orcFileReader = new OrcFileReader(args[0]);
         Iterator<String> readLines = orcFileReader.iterator();
+        int index = 0;
         while (readLines.hasNext()) {
+            if (index++ > 10) {
+                break;
+            }
             System.out.println(readLines.next());
         }
         orcFileReader.close();
