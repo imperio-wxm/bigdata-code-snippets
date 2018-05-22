@@ -120,7 +120,7 @@ public class OrcFileWriter {
                     case STRING:
                     case VARCHAR:
                     case BINARY:
-                        ((BytesColumnVector) cv).setVal(rc, val.getBytes(DEFAULT_CHARSET));
+                        //((BytesColumnVector) cv).setVal(rc, val.getBytes(DEFAULT_CHARSET));
                         break;
                     default:
                         throw new UnsupportedOperationException(td.getCategory() + ":" + val);
