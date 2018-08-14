@@ -8,8 +8,10 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.ui.SparkUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option;
 import scala.Tuple2;
 
 import java.util.ArrayList;
@@ -25,8 +27,22 @@ public class SparkDemo {
         SparkConf conf = new SparkConf();
         conf.setAppName("wordcount");
 
+        Tuple2<String, String>[] configs = conf.getAll();
+        LOG.info("config start ================");
+        Arrays.stream(configs).forEach(c -> {
+            LOG.info("key" + c._1 + ", value = " + c._2);
+        });
+        LOG.info("config end ================");
+
+
+        String sleepTime = args[0];
+
         // 第二步：创建JavaSparkContext对象，SparkContext是Spark的所有功能的入口
         try (JavaSparkContext sc = new JavaSparkContext(conf)) {
+            Option<SparkUI>  webSparkUI = sc.sc().ui();
+            webSparkUI.get();
+            Option<String> webUrl = sc.sc().uiWebUrl();
+            LOG.info("==============================web " + webUrl.get());
 
             // 第三步：创建一个初始的RDD
             List<String> wordList = new ArrayList<>();
@@ -68,15 +84,16 @@ public class SparkDemo {
 
                 @Override
                 public void call(Tuple2<String, Integer> wordCount) {
-                    LOG.info(wordCount._1 + "------" + wordCount._2 + "times.");
+                    while (true) {
+                        LOG.info(wordCount._1 + "------" + wordCount._2 + "times.");
+                        try {
+                            Thread.sleep(Long.parseLong(sleepTime));
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             });
-
-            try {
-                Thread.sleep(60 * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

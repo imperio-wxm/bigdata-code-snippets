@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
+import java.util.UUID;
+
 public class SparkSequenceFileRead {
     private static final Logger LOG = LoggerFactory.getLogger(SparkSequenceFileRead.class);
 
@@ -42,9 +44,8 @@ public class SparkSequenceFileRead {
                     return new Tuple2<>((Text) value._1, (Text) value._2);
                 }
             });
-            seqRDD.cache();
             seqRDD.saveAsNewAPIHadoopFile(outPutPath, Text.class, Text.class, org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat.class);
-            LOG.info("All size = " + seqRDD.collect().size());
+            LOG.info("All size = " + seqRDD.count());
         }
     }
 }
