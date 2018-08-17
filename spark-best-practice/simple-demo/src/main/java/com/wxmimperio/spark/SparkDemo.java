@@ -8,16 +8,16 @@ import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.ui.SparkUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Option;
 import scala.Tuple2;
+import org.apache.spark.sql.SparkSession;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class SparkDemo {
     private static final Logger LOG = LoggerFactory.getLogger(SparkDemo.class);
@@ -37,12 +37,14 @@ public class SparkDemo {
 
         String sleepTime = args[0];
 
-        // 第二步：创建JavaSparkContext对象，SparkContext是Spark的所有功能的入口
+
         try (JavaSparkContext sc = new JavaSparkContext(conf)) {
-            Option<SparkUI>  webSparkUI = sc.sc().ui();
+            sc.setJobGroup(UUID.randomUUID().toString(), "group id");
+            Option<SparkUI> webSparkUI = sc.sc().ui();
             webSparkUI.get();
             Option<String> webUrl = sc.sc().uiWebUrl();
             LOG.info("==============================web " + webUrl.get());
+
 
             // 第三步：创建一个初始的RDD
             List<String> wordList = new ArrayList<>();
@@ -59,9 +61,9 @@ public class SparkDemo {
                 public Iterator<String> call(String line) {
 
                     return Arrays.asList(line.split(" ")).iterator();
-
                 }
             });
+
             JavaPairRDD<String, Integer> pairs = words.mapToPair(new PairFunction<String, String, Integer>() {
                 private static final long serialVersionUID = 1L;
 
@@ -79,6 +81,19 @@ public class SparkDemo {
                     return v1 + v2;
                 }
             });
+
+            Map<String, Long> wordCountByKey = wordCounts.countByKey();
+            wordCountByKey.forEach((k, v) -> LOG.info("key = " + k + ", v = " + v));
+            JavaPairRDD<String, Integer> softRDD = wordCounts.sortByKey();
+            softRDD.foreach(new VoidFunction<Tuple2<String, Integer>>() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                public void call(Tuple2<String, Integer> wordCount) {
+                    LOG.info("soft = " + wordCount._1 + "------" + wordCount._2 + "times.");
+                }
+            });
+
             wordCounts.foreach(new VoidFunction<Tuple2<String, Integer>>() {
                 private static final long serialVersionUID = 1L;
 
