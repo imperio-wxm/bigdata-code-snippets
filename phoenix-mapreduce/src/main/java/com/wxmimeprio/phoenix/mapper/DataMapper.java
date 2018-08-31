@@ -1,30 +1,26 @@
 package com.wxmimeprio.phoenix.mapper;
 
-import com.wxmimeprio.phoenix.DataWritable;
-import org.apache.hadoop.io.DoubleWritable;
+import com.wxmimeprio.phoenix.beans.DataWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.IOException;
 
-public class DataMapper extends Mapper<NullWritable, DataWritable, Text, DoubleWritable> {
+public class DataMapper extends Mapper<NullWritable, DataWritable, Text, DataWritable> {
 
-    private Text stock = new Text();
-    private DoubleWritable price = new DoubleWritable ();
+    private DataWritable data = new DataWritable();
 
     @Override
     protected void map(NullWritable key, DataWritable dataWritable, Context context) throws IOException, InterruptedException {
-        double[] recordings = dataWritable.getRecordings();
-        final String stockName = dataWritable.getStockName();
-        double maxPrice = Double.MIN_VALUE;
-        for(double recording : recordings) {
-            if(maxPrice < recording) {
-                maxPrice = recording;
-            }
-        }
-        stock.set(stockName);
-        price.set(maxPrice);
-        context.write(stock,price);
+        data.setMessagekey(dataWritable.getMessagekey());
+        data.setData_timestamp(dataWritable.getData_timestamp());
+        data.setEvent_time(dataWritable.getEvent_time());
+        data.setName(dataWritable.getName());
+        data.setTest_add1(dataWritable.getTest_add1());
+        data.setTest_add2(dataWritable.getTest_add2());
+        data.setTest_add3(dataWritable.getTest_add3());
+        data.setTest_add4(dataWritable.getTest_add4());
+        context.write(new Text(dataWritable.getMessagekey()), data);
     }
 }
