@@ -17,7 +17,6 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -80,13 +79,11 @@ public class SparkHFileGenerator {
             job.setMapOutputValueClass(KeyValue.class);
 
             FileInputFormat.addInputPath(job, new Path(inputPath));
-            FileOutputFormat.setOutputPath(job, new Path(outputPath));
             RegionLocator regionLocator = connection.getRegionLocator(TableName.valueOf(tableName));
             HFileOutputFormat2.configureIncrementalLoad(job, table, regionLocator);
 
             JavaRDD<String> lines = sc.textFile(inputPath);
             lines.persist(StorageLevel.MEMORY_AND_DISK_SER());
-
             Broadcast<Map<String, String>> broadcast = sc.broadcast(map);
 
             JavaPairRDD<ImmutableBytesWritable, KeyValue> hfileRdd = lines.flatMapToPair(new PairFlatMapFunction<String, ImmutableBytesWritable, KeyValue>() {
@@ -105,7 +102,7 @@ public class SparkHFileGenerator {
                     String[] rowKeys = broadcastValue.get("metaRowKey").split("\\|", -1);
                     String[] encodeKey = broadcastValue.get("encodeKey").split("\\|", -1);
 
-                    String key = "1234567890123456";
+                    String key = "1111111111111111";
                     SecretKey secretKey = new SecretKeySpec(key.getBytes(), 0, key.getBytes().length, "AES");
                     Cipher cipher = Cipher.getInstance("AES");
                     cipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -115,10 +112,12 @@ public class SparkHFileGenerator {
                     String[] items = text.split("\\|", -1);
                     int index = 0;
                     JsonObject data = new JsonObject();
+                    List<String> colList = new ArrayList<>();
                     for (JsonElement element : cols) {
                         JsonObject col = element.getAsJsonObject();
                         if (!items[index].equalsIgnoreCase("null") && !items[index].equalsIgnoreCase("\\N")) {
                             data.addProperty(col.get("name").getAsString(), items[index]);
+                            colList.add(col.get("name").getAsString());
                         }
                         index++;
                     }
@@ -127,7 +126,7 @@ public class SparkHFileGenerator {
                         if (data.has(encodeCol) && null != data.get(encodeCol)) {
                             // 加密
                             byte[] encodeMsg = data.get(encodeCol).getAsString().getBytes();
-                            Base64.Encoder encoder = Base64.getEncoder();
+                            Base64.Encoder encoder = Base64.getEncoder().withoutPadding();
                             byte[] res = new byte[0];
                             try {
                                 res = cipher.doFinal(encodeMsg, 0, encodeMsg.length);
@@ -141,6 +140,14 @@ public class SparkHFileGenerator {
                             LOG.info("加密后 = " + data);
                         }
                     }
+
+                    // 列的顺序要按字典序
+                    Collections.sort(colList);
+                    JsonObject newData = new JsonObject();
+                    for (String colName : colList) {
+                        newData.addProperty(colName, data.get(colName).getAsString());
+                    }
+                    data = newData;
 
                     StringBuilder rowKeyStr = new StringBuilder();
                     for (String rowKey : rowKeys) {

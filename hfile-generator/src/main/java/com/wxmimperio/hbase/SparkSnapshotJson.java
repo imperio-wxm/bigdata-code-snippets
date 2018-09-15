@@ -22,7 +22,6 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
-import org.apache.spark.storage.StorageLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import scala.Tuple2;
@@ -64,7 +63,7 @@ public class SparkSnapshotJson {
                     TableSnapshotInputFormat.class,
                     ImmutableBytesWritable.class,
                     Result.class
-            ).repartition(1000);
+            );
 
             JavaRDD<String> hbaseLineRDD = hbaseRDD.map(new Function<Tuple2<ImmutableBytesWritable, Result>, String>() {
                 @Override
@@ -72,7 +71,7 @@ public class SparkSnapshotJson {
                     return convertResultToJson(v1._2).toString();
                 }
             });
-            hbaseLineRDD.persist(StorageLevel.MEMORY_AND_DISK());
+
             hbaseLineRDD.saveAsTextFile(outputPath);
         } catch (Exception e) {
             e.printStackTrace();
