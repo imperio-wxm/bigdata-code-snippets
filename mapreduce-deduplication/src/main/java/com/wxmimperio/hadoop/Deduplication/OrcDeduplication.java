@@ -146,7 +146,6 @@ public class OrcDeduplication {
 
             // delete output path
             HDFSUtils.deleteFiles(realPath);
-
             // remove file
             for (String path : HDFSUtils.getFileList(outputPath)) {
                 if (HDFSUtils.isFileClosed(path)) {
@@ -154,7 +153,6 @@ public class OrcDeduplication {
                     HDFSUtils.renameFile(path, mvPath);
                 }
             }
-
             // delete output path
             HDFSUtils.deleteFiles(outputPath);
 

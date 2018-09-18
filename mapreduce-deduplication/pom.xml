@@ -12,8 +12,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hadoop.version>2.6.0-cdh5.11.1</hadoop.version>
+        <hive.version>1.1.0-cdh5.11.1</hive.version>
+        <hive.scope>compile</hive.scope>
         <maven.test.skip>true</maven.test.skip>
-        <hadoop.version>2.0.0-cdh4.7.0</hadoop.version>
     </properties>
 
     <dependencies>
@@ -48,6 +50,20 @@
             <artifactId>hadoop-mapreduce-client-common</artifactId>
             <version>${hadoop.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive.version}</version>
+            <scope>${hive.scope}</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-exec</artifactId>
+            <version>${hive.version}</version>
+            <scope>${hive.scope}</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -56,8 +72,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.0.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -85,7 +102,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.wxmimperio.hadoop.Deduplication.FileDeduplication</mainClass>
+                                    <mainClass>com.wxmimperio.hadoop.Deduplication.OrcDeduplication</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
@@ -94,4 +111,21 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>nexus-public</id>
+            <url>http://nexus.dw.sdo.com/content/groups/public/</url>
+        </repository>
+
+        <repository>
+            <id>dw-releases</id>
+            <url>http://nexus.dw.sdo.com/content/repositories/dw-releases/</url>
+        </repository>
+
+        <repository>
+            <id>dw-snapshots</id>
+            <url>http://nexus.dw.sdo.com/content/repositories/dw-snapshots/</url>
+        </repository>
+    </repositories>
 </project>

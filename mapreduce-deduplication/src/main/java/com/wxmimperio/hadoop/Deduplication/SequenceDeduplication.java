@@ -90,7 +90,7 @@ public class SequenceDeduplication {
         SequenceFileOutputFormat.setOutputPath(job, new Path(otherArgs[2]));
         SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
 
-        if(job.waitForCompletion(true) ? true: false) {
+        if(job.waitForCompletion(true)) {
             Counters counters = job.getCounters();
             Counter counter = counters.findCounter(Count.TotalCount);
             LOG.info("TotalCount = " + counter.getValue());
@@ -105,7 +105,7 @@ public class SequenceDeduplication {
             boolean isDel = hdfs.delete(path, true);
             LOG.info(fileName + "  delete? \t" + isDel);
         } else {
-            LOG.error(fileName + "  exist? \t" + isExists);
+            LOG.error(fileName + "  exist? \t" + false);
         }
     }
 }
