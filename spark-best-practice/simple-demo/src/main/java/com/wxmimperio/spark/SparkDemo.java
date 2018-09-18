@@ -34,10 +34,6 @@ public class SparkDemo {
         });
         LOG.info("config end ================");
 
-
-        String sleepTime = args[0];
-
-
         try (JavaSparkContext sc = new JavaSparkContext(conf)) {
             sc.setJobGroup(UUID.randomUUID().toString(), "group id");
             Option<SparkUI> webSparkUI = sc.sc().ui();
@@ -99,14 +95,7 @@ public class SparkDemo {
 
                 @Override
                 public void call(Tuple2<String, Integer> wordCount) {
-                    while (true) {
-                        LOG.info(wordCount._1 + "------" + wordCount._2 + "times.");
-                        try {
-                            Thread.sleep(Long.parseLong(sleepTime));
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    LOG.info(wordCount._1 + "------" + wordCount._2 + "times.");
                 }
             });
         }
