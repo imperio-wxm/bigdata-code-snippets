@@ -1,5 +1,6 @@
 package com.wxmimperio.hadoop.mapreduce.mapper;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
@@ -24,7 +25,6 @@ public class OrcHiveMapper extends Mapper<NullWritable, OrcStruct, Text, Text> {
     protected void map(NullWritable key, OrcStruct value, Context context) throws IOException, InterruptedException {
         vkey = vkey + 1;
         long mkey = vkey / 10000;
-
         String schemaStr = context.getConfiguration().get("schema");
         TypeInfo typeInfo = TypeInfoUtils.getTypeInfoFromTypeString(schemaStr);
         ObjectInspector inspector = OrcStruct.createObjectInspector(typeInfo);
@@ -32,11 +32,13 @@ public class OrcHiveMapper extends Mapper<NullWritable, OrcStruct, Text, Text> {
         List<Object> dataAsList = structObjectInspector.getStructFieldsDataAsList(value);
 
         StringBuilder stringBuilder = new StringBuilder();
-        dataAsList.forEach(data -> {
-            String fieldValue = data.toString();
-            stringBuilder.append(fieldValue).append("|");
-        });
-        LOG.info(stringBuilder.toString());
-        context.write(new Text(String.valueOf(mkey)), new Text(stringBuilder.toString()));
+        if (!CollectionUtils.isEmpty(dataAsList)) {
+            dataAsList.forEach(data -> {
+                String fieldValue = data == null ? "null" : data.toString();
+                stringBuilder.append(fieldValue).append("|");
+            });
+            LOG.info(stringBuilder.toString());
+            context.write(new Text(String.valueOf(mkey)), new Text(stringBuilder.toString()));
+        }
     }
 }

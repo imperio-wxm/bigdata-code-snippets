@@ -4,7 +4,6 @@ import com.wxmimperio.hadoop.utils.HiveUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.ql.io.orc.OrcSerde;
 import org.apache.hadoop.hive.ql.io.orc.OrcStruct;
-import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch;
 import org.apache.hadoop.hive.serde2.objectinspector.SettableStructObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.StructField;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
@@ -15,7 +14,6 @@ import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 public class OrcReduce extends Reducer<Text, Text, NullWritable, Writable> {
@@ -40,7 +38,7 @@ public class OrcReduce extends Reducer<Text, Text, NullWritable, Writable> {
                     "\\N".equalsIgnoreCase(text.toString()) || "null".equalsIgnoreCase(text.toString())) {
                 continue;
             }
-            String[] result = text.toString().split("|", -1);
+            String[] result = text.toString().split("\\|", -1);
             for (int i = 0; i < fields.size(); i++) {
                 try {
                     HiveUtil.formatFieldValue(inspector, fields.get(i), orcStruct, result[i]);
@@ -52,9 +50,5 @@ public class OrcReduce extends Reducer<Text, Text, NullWritable, Writable> {
             context.write(NullWritable.get(), this.row);
             context.getCounter(Count.TotalCount).increment(1);
         }
-    }
-
-    public static void main(String[] args) {
-        System.out.println(Arrays.asList("dfsd|dfasd|".split("\\|",-1)));
     }
 }
