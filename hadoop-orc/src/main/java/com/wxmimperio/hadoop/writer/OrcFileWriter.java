@@ -26,36 +26,36 @@ public class OrcFileWriter {
     public static long writeOrc(String db, String table, List<String> buffer, String hdfsDesPath, int writeBatch) throws Exception {
         TypeDescription schema = OrcUtils.getColumnTypeDescs(db, table);
         long totalLine = 0L;
-        try (Writer writer = OrcFile.createWriter(new Path(hdfsDesPath), OrcFile.writerOptions(FileSystemUtil.getConf()).setSchema(schema).compress(CompressionKind.SNAPPY))) {
-            VectorizedRowBatch batch = schema.createRowBatch(writeBatch);
-            String[] cols;
-            for (String line : buffer) {
-                totalLine++;
-                cols = line.split(DEFAULT_COL_SPLITTER, -1);
-                if (cols.length != schema.getFieldNames().size()) {
-                    LOG.error("Write orc error, data = " + line);
-                } else {
-                    for (int i = 0; i < schema.getFieldNames().size(); i++) {
-                        setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], batch.size, cols[i]);
-                    }
-                    batch.size++;
-                    if (batch.size == batch.getMaxSize()) {
-                        try {
-                            writer.addRowBatch(batch);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        } finally {
-                            batch.reset();
-                        }
+        Writer writer = OrcFile.createWriter(new Path(hdfsDesPath), OrcFile.writerOptions(FileSystemUtil.getConf()).setSchema(schema).compress(CompressionKind.SNAPPY));
+        VectorizedRowBatch batch = schema.createRowBatch(writeBatch);
+        String[] cols;
+        for (String line : buffer) {
+            totalLine++;
+            cols = line.split(DEFAULT_COL_SPLITTER, -1);
+            if (cols.length != schema.getFieldNames().size()) {
+                LOG.error("Write orc error, data = " + line);
+            } else {
+                for (int i = 0; i < schema.getFieldNames().size(); i++) {
+                    setColumnVectorVal(schema.getChildren().get(i), batch.cols[i], batch.size, cols[i]);
+                }
+                batch.size++;
+                if (batch.size == batch.getMaxSize()) {
+                    try {
+                        writer.addRowBatch(batch);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        batch.reset();
                     }
                 }
             }
-            if (batch.size > 0) {
-                writer.addRowBatch(batch);
-                batch.reset();
-            }
-            LOG.info("finish write orc file for " + hdfsDesPath);
         }
+        if (batch.size > 0) {
+            writer.addRowBatch(batch);
+            batch.reset();
+        }
+        LOG.info("finish write orc file for " + hdfsDesPath);
+        writer.close();
         return totalLine;
     }
 

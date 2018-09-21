@@ -1,3 +1,4 @@
+/*
 package com.wxmimperio.hadoop.reader;
 
 import com.google.common.collect.Lists;
@@ -81,12 +82,14 @@ public class OrcFileReader implements Iterable<String> {
             private List<String> lineBuffer = new ArrayList<>();
             private int read = 0;
 
-            /**
+            */
+/**
              * Get ColumnVector by \t
              * @param cvs
              * @param index
              * @return
-             */
+             *//*
+
             private String getLine(ColumnVector[] cvs, int index) {
                 List<String> lineArray = Lists.newArrayList();
                 for (int i = 0; i < cvs.length; i++) {
@@ -97,7 +100,8 @@ public class OrcFileReader implements Iterable<String> {
                 return line;
             }
 
-            /**
+            */
+/**
              * BOOLEAN("boolean", true), *
              * BYTE("tinyint", true),    *
              * SHORT("smallint", true),  *
@@ -121,7 +125,8 @@ public class OrcFileReader implements Iterable<String> {
              * @param cv
              * @param index
              * @return
-             */
+             *//*
+
             private String parseColumn(TypeDescription td, ColumnVector cv, int index) {
                 String result = null;
                 switch (td.getCategory()) {
@@ -204,3 +209,4 @@ public class OrcFileReader implements Iterable<String> {
         }
     }
 }
+*/

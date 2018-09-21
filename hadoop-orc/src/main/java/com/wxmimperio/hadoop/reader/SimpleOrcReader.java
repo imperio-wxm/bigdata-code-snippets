@@ -1,3 +1,4 @@
+/*
 package com.wxmimperio.hadoop.reader;
 
 
@@ -67,9 +68,11 @@ public class SimpleOrcReader {
     }
 
     private static Long readLong(ColumnVector cv, int index) {
-        /*if (cv.isRepeating) {
+        */
+/*if (cv.isRepeating) {
             index = 0;
-        }*/
+        }*//*
+
         if (cv.noNulls || !cv.isNull[index]) {
             return ((LongColumnVector) cv).vector[index];
         } else {
@@ -78,9 +81,11 @@ public class SimpleOrcReader {
     }
 
     private static Double readDouble(ColumnVector cv, int index) {
-        /*if (cv.isRepeating) {
+        */
+/*if (cv.isRepeating) {
             index = 0;
-        }*/
+        }*//*
+
         if (cv.noNulls || !cv.isNull[index]) {
             return ((DoubleColumnVector) cv).vector[index];
         } else {
@@ -89,9 +94,11 @@ public class SimpleOrcReader {
     }
 
     private static String readString(ColumnVector cv, int index) {
-        /*if (cv.isRepeating) {
+        */
+/*if (cv.isRepeating) {
             index = 0;
-        }*/
+        }*//*
+
         if (cv.noNulls || !cv.isNull[index]) {
             return new String(((BytesColumnVector) cv).vector[index], Charset.forName("UTF-8"));
         } else {
@@ -99,3 +106,4 @@ public class SimpleOrcReader {
         }
     }
 }
+*/

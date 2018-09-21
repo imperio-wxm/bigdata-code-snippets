@@ -1,3 +1,4 @@
+/*
 package com.wxmimperio.hadoop;
 
 import com.google.common.collect.Lists;
@@ -67,3 +68,4 @@ public class OrcFileMain {
         orcFileReader.close();
     }
 }
+*/
