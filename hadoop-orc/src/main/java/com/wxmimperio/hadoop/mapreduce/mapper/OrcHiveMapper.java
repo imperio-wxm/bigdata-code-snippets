@@ -37,6 +37,7 @@ public class OrcHiveMapper extends Mapper<NullWritable, OrcStruct, Text, Text> {
                 String fieldValue = data == null ? "null" : data.toString();
                 stringBuilder.append(fieldValue).append("|");
             });
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
             LOG.info(stringBuilder.toString());
             context.write(new Text(String.valueOf(mkey)), new Text(stringBuilder.toString()));
         }
