@@ -2,6 +2,7 @@ package com.wxmimperio.hadoop.utils;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 import java.net.URI;
@@ -10,13 +11,11 @@ import java.net.URI;
 public class FileSystemUtil {
     private static Configuration conf = null;
     private static FileSystem fileSystem = null;
-    private static String CORE_SITE_XML = "core-site.xml";
-    private static String HDFS_SITE_XML = "hdfs-site.xml";
 
     static {
         conf = new Configuration();
-        conf.addResource(CORE_SITE_XML);
-        conf.addResource(HDFS_SITE_XML);
+        conf.addResource(new Path("/etc/hadoop/conf/core-site.xml"));
+        conf.addResource(new Path("/etc/hadoop/conf/hdfs-site.xml"));
         conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
     }
 

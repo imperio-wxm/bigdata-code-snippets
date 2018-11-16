@@ -26,13 +26,11 @@ public class SequenceToOrc {
     private static String hdfsUri = "hdfs://sdg";
     private static final String DFS_FAILURE_ENABLE = "dfs.client.block.write.replace-datanode-on-failure.enable";
     private static final String DFS_SUPPORT_APPEND = "dfs.support.append";
-    private static final String CORE_SITE_XML = "core-site.xml";
-    private static final String HDFS_SITE_XML = "hdfs-site.xml";
 
     static Configuration config() {
         Configuration conf = new Configuration();
-        conf.addResource(CORE_SITE_XML);
-        conf.addResource(HDFS_SITE_XML);
+        conf.addResource(new Path("/etc/hadoop/conf/core-site.xml"));
+        conf.addResource(new Path("/etc/hadoop/conf/hdfs-site.xml"));
         conf.setBoolean(DFS_SUPPORT_APPEND, true);
         conf.setBoolean(DFS_FAILURE_ENABLE, true);
         conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
@@ -46,8 +44,8 @@ public class SequenceToOrc {
 
         TypeDescription schema = OrcUtils.getColumnTypeDescs(db, table);
 
-        try (SequenceFile.Reader reader = new SequenceFile.Reader(config(), SequenceFile.Reader.file(path))) {
-            Writer writer = OrcFileWriter.getOrcWriter(outputPath, schema);
+        try (SequenceFile.Reader reader = new SequenceFile.Reader(config(), SequenceFile.Reader.file(path));
+                Writer writer = OrcFileWriter.getOrcWriter(outputPath, schema)) {
 
             long index = 0L;
             if (fs.exists(path)) {
@@ -71,7 +69,6 @@ public class SequenceToOrc {
                 }
             }
             LOG.info("File = " + sequenceFilePath + ", size = " + index);
-            writer.close();
         }
     }
 }

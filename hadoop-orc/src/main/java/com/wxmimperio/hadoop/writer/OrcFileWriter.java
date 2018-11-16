@@ -12,9 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
+
+import static parquet.bytes.BytesUtils.UTF8;
 
 public class OrcFileWriter {
 
@@ -97,7 +101,8 @@ public class OrcFileWriter {
         }
     }
 
-    private static void setColumnVectorVal(TypeDescription td, ColumnVector cv, int rc, String val) {
+    private static void setColumnVectorVal(TypeDescription td, ColumnVector cv, int rc, String val) throws UnsupportedEncodingException {
+
         if (null == val || "".equals(val) || "\\N".equals(val)) {
             cv.noNulls = false;
             cv.isNull[rc] = true;
@@ -105,8 +110,7 @@ public class OrcFileWriter {
             try {
                 switch (td.getCategory()) {
                     case BOOLEAN:
-                        long bval = Long.parseLong(val) > 0 ? 1 : 0;
-                        ((LongColumnVector) cv).vector[rc] = bval;
+                        ((LongColumnVector) cv).vector[rc] = Boolean.parseBoolean(val) ? 1L : 0L;
                         break;
                     case INT:
                     case LONG:
@@ -120,7 +124,11 @@ public class OrcFileWriter {
                     case STRING:
                     case VARCHAR:
                     case BINARY:
-                        //((BytesColumnVector) cv).setVal(rc, val.getBytes(DEFAULT_CHARSET));
+                        byte[] stringBytes = val.getBytes(DEFAULT_CHARSET);
+                        ((BytesColumnVector) cv).setRef(rc, stringBytes, 0, stringBytes.length);
+                        break;
+                    case TIMESTAMP:
+                        ((TimestampColumnVector) cv).set(rc, Timestamp.valueOf(val));
                         break;
                     default:
                         throw new UnsupportedOperationException(td.getCategory() + ":" + val);
