@@ -51,6 +51,11 @@ public class HDFSUtils {
         return conf;
     }
 
+    public static void copyFile(String local, String remote) throws IOException {
+        FileSystem fs = FileSystem.get(URI.create(hdfsUri), config());
+        fs.copyFromLocalFile(new Path(local), new Path(remote));
+        LOG.info("copy from: " + local + " to " + remote);
+    }
 
     public static boolean checkFileExist(String filePath) throws IOException {
         FileSystem fs = FileSystem.get(URI.create(hdfsUri), config());
