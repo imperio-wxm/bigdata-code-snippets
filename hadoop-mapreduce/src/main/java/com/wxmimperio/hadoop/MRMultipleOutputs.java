@@ -2,7 +2,6 @@ package com.wxmimperio.hadoop;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -19,7 +18,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.UUID;
 
 public class MRMultipleOutputs {
 
@@ -73,12 +71,12 @@ public class MRMultipleOutputs {
                         String tableName = msgs[0];
                         String partDate = simpleDateFormat.get().format(new Date());
                         try {
-                            simpleDateFormat.get().format(eventTime.get().parse(msgs[1]));
+                            partDate = simpleDateFormat.get().format(eventTime.get().parse(msgs[1]));
                         } catch (ParseException e) {
                             e.printStackTrace();
                         }
                         System.out.println(msg);
-                        mos.write(key, value, tableName + "/part_date=" + partDate + "/" + tableName + "_" + UUID.randomUUID().toString().replaceAll("-", ""));
+                        mos.write(key, value, tableName + "/part_date=" + partDate + "/" + tableName.toLowerCase());
                     }
                 }
             }
