@@ -2,7 +2,6 @@ package com.wxmimperio.es;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -15,11 +14,16 @@ import java.util.ResourceBundle;
 
 public class SimpleEsMapReduce {
 
-    public static class ReadMapper extends Mapper<Object, Text, NullWritable, Text> {
+    public static class ReadMapper extends Mapper<Object, Text, Text, Text> {
+        private static long vkey = 0L;
+        private long mkey = 0L;
+
         @Override
-        public void map(Object key, Text value, Mapper<Object, Text, NullWritable, Text>.Context context) throws IOException, InterruptedException {
+        public void map(Object key, Text value, Mapper<Object, Text, Text, Text>.Context context) throws IOException, InterruptedException {
+            vkey = vkey + 1;
+            mkey = vkey / 10000;
             byte[] source = value.toString().trim().getBytes();
-            context.write(NullWritable.get(), new Text(source));
+            context.write(new Text(String.valueOf(mkey)), new Text(source));
         }
     }
 
@@ -49,7 +53,7 @@ public class SimpleEsMapReduce {
             job.setMapperClass(ReadMapper.class);
             job.setInputFormatClass(TextInputFormat.class);
             job.setOutputFormatClass(EsOutputFormat.class);
-            job.setMapOutputKeyClass(NullWritable.class);
+            job.setMapOutputKeyClass(Text.class);
             job.setMapOutputValueClass(Text.class);
 
             FileInputFormat.setInputPaths(job, new Path(inputPath));
