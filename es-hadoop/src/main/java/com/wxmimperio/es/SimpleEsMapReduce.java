@@ -13,7 +13,7 @@ import org.elasticsearch.hadoop.mr.EsOutputFormat;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
-public class EsMapReduce {
+public class SimpleEsMapReduce {
 
     public static class ReadMapper extends Mapper<Object, Text, NullWritable, Text> {
         @Override
@@ -45,7 +45,7 @@ public class EsMapReduce {
             conf.set("es.input.json", "yes");
 
             Job job = Job.getInstance(conf, "hadoop es write test");
-            job.setJarByClass(EsMapReduce.class);
+            job.setJarByClass(SimpleEsMapReduce.class);
             job.setMapperClass(ReadMapper.class);
             job.setInputFormatClass(TextInputFormat.class);
             job.setOutputFormatClass(EsOutputFormat.class);
