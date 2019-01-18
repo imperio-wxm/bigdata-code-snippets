@@ -1,9 +1,11 @@
 package com.wxmimperio.spark.sql;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.RowFactory;
@@ -12,8 +14,6 @@ import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class InteroperatingRDDs {
@@ -77,6 +77,16 @@ public class InteroperatingRDDs {
         peopleDataFrame.createOrReplaceTempView("people");
         // SQL can be run over a temporary view created using DataFrames
         Dataset<Row> results = spark.sql("SELECT * FROM people");
-        results.show();
+        List<SparkDataFrameDataSetSql.Person> personLists = results.toJavaRDD().map((Function<Row, SparkDataFrameDataSetSql.Person>) row -> {
+            StructType structType = row.schema();
+            String[] fieldsName = structType.fieldNames();
+            return new SparkDataFrameDataSetSql.Person(
+                    StringUtils.isEmpty(row.getString(0)) ? null : row.getString(0),
+                    StringUtils.isEmpty(row.getString(1)) ? null : Integer.parseInt(row.getString(1))
+            );
+        }).collect();
+
+        personLists.forEach(System.out::println);
+
     }
 }
