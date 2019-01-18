@@ -53,11 +53,12 @@ public class HiveUtils {
             int reTry = 1;
             while (reTry <= 3) {
                 try {
+                    Thread.sleep(5000);
                     tableNames = combineConfig();
+                    LOG.info("ReTry get hdfs config, times = " + reTry);
                 } catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                LOG.info("ReTry get hdfs config, times = " + reTry);
                 reTry++;
                 if (CollectionUtils.isNotEmpty(tableNames)) {
                     break;
@@ -109,12 +110,22 @@ public class HiveUtils {
     }
 
     public static void addPartition(String db, String tableName, String date) throws SQLException {
+        String showPartition = "SHOW PARTITIONS " + db + "." + tableName + " PARTITION(part_date='" + date + "')";
         String addPartitionHql = "ALTER TABLE " + db + "." + tableName + " ADD PARTITION(part_date='" + date + "')";
+        String partitionSearch = null;
         try (Connection connection = pool.getConnection()) {
             Statement statement = connection.createStatement();
             try {
-                statement.execute(addPartitionHql);
-                LOG.info("Table " + tableName + " partition=" + date + " add.");
+                ResultSet resultSet = statement.executeQuery(showPartition);
+                while (resultSet.next()) {
+                    partitionSearch = resultSet.getString(1);
+                }
+                if (StringUtils.isEmpty(partitionSearch)) {
+                    statement.execute(addPartitionHql);
+                    LOG.info("Table " + tableName + " partition=" + date + " add.");
+                } else {
+                    LOG.warn("Table " + tableName + " partition='" + date + "' already exists.");
+                }
             } catch (SQLException e) {
                 if (e.getMessage().trim().contains("AlreadyExistsException")) {
                     LOG.info("Table " + tableName + " partition=" + date + " already exists.");
