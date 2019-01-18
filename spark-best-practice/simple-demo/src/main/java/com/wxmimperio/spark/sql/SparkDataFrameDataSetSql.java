@@ -1,4 +1,4 @@
-package com.wxmimperio.spark;
+package com.wxmimperio.spark.sql;
 
 import com.google.common.collect.Lists;
 import org.apache.spark.api.java.function.FilterFunction;
@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 
-public class SparkLocal {
+public class SparkDataFrameDataSetSql {
 
     public static void main(String[] args) {
         SparkSession spark = SparkSession
@@ -18,8 +18,10 @@ public class SparkLocal {
                 .master("local")
                 .getOrCreate();
 
+        String jsonPath = "simple-demo/src/resources/people.json";
+
         // dataFrame ops
-        Dataset<Row> df = spark.read().json("D:\\d_backup\\github\\hadoop-code-snippets\\spark-best-practice\\simple-demo\\src\\resources\\people.json");
+        Dataset<Row> df = spark.read().json(jsonPath);
         df.show();
         df.printSchema();
         df.select("name").show();
@@ -52,6 +54,8 @@ public class SparkLocal {
                 .map((MapFunction<Integer, Integer>) value -> value + 10, integerEncoder);
         integerDS.show();
 
+        // read dataset from jsonFile
+        spark.read().json(jsonPath).as(personEncoder).show();
     }
 
     public static class Person implements Serializable {
