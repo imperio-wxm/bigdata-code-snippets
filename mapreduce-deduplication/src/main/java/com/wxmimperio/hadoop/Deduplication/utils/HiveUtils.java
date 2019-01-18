@@ -1,11 +1,18 @@
 package com.wxmimperio.hadoop.Deduplication.utils;
 
+import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.wxmimperio.hadoop.Deduplication.connection.HiveConnectionPool;
+import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.hive.serde2.typeinfo.StructTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 
@@ -15,23 +22,64 @@ public class HiveUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(HiveUtils.class);
 
-    private static String url;
-    private static String username;
+    private static HiveConnectionPool prestoConnectionPool = HiveConnectionPool.getInstance();
+    private static HikariDataSource pool = prestoConnectionPool.getHikariDataSource();
+    private static ResourceBundle bundle;
 
     static {
-        try {
-            String hiveDriver = "org.apache.hive.jdbc.HiveDriver";
-            Class.forName(hiveDriver);
-            Properties properties = new Properties();
-            properties.load(HiveUtils.class.getClassLoader().getResourceAsStream("config.properties"));
-            username = properties.getProperty("hive.jdbc.connection.username");
-            url = properties.getProperty("hive.jdbc.connection.url");
-        } catch (ClassNotFoundException e) {
-            LOG.error("HiveDriver not found!", e);
-        } catch (IOException e) {
-            LOG.error("Get config error!", e);
-        }
+        bundle = ResourceBundle.getBundle("config", Locale.ENGLISH);
     }
+
+    private static JsonObject getConfigTopics(String url) throws Exception {
+        CloseableHttpClient client = HttpClientUtil.getHttpClient();
+        String res = HttpClientUtil.doGet(url);
+        JsonObject jsonObject = new JsonParser().parse(res).getAsJsonObject();
+        jsonObject = jsonObject.get("propertySources")
+                .getAsJsonArray()
+                .get(0)
+                .getAsJsonObject()
+                .get("source")
+                .getAsJsonObject();
+
+        client.close();
+        return jsonObject;
+    }
+
+    public static List<String> getConfigTables() {
+        List<String> tableNames = Lists.newArrayList();
+        try {
+            tableNames = combineConfig();
+        } catch (Exception e) {
+            int reTry = 1;
+            while (reTry <= 3) {
+                try {
+                    tableNames = combineConfig();
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+                LOG.info("ReTry get hdfs config, times = " + reTry);
+                reTry++;
+                if (CollectionUtils.isNotEmpty(tableNames)) {
+                    break;
+                }
+            }
+            if (reTry == 3 && CollectionUtils.isEmpty(tableNames)) {
+                throw new RuntimeException("Can not get config topic!");
+            }
+        }
+        return tableNames;
+    }
+
+    private static List<String> combineConfig() throws Exception {
+        List<String> tableNames = Lists.newArrayList();
+        JsonObject jsonObject = getConfigTopics(bundle.getString("hdfs.config.url"));
+        String schemaTables = jsonObject.get("schema.topic.name") == null ? null : jsonObject.get("schema.topic.name").getAsString();
+        String directTables = jsonObject.get("direct.topic.name") == null ? null : jsonObject.get("direct.topic.name").getAsString();
+        tableNames.addAll(StringUtils.isEmpty(schemaTables) ? Lists.newArrayList() : Arrays.asList(schemaTables.split(",", -1)));
+        tableNames.addAll(StringUtils.isEmpty(directTables) ? Lists.newArrayList() : Arrays.asList(directTables.split(",", -1)));
+        return tableNames;
+    }
+
 
     private static List<ColumnTypeDesc> getPartitionColumns(String db, String table, Connection connection) throws Exception {
         List<ColumnTypeDesc> ctdList = new ArrayList<>();
@@ -62,7 +110,7 @@ public class HiveUtils {
 
     public static void addPartition(String db, String tableName, String date) throws SQLException {
         String addPartitionHql = "ALTER TABLE " + db + "." + tableName + " ADD PARTITION(part_date='" + date + "')";
-        try (Connection connection = DriverManager.getConnection(url, username, "")) {
+        try (Connection connection = pool.getConnection()) {
             Statement statement = connection.createStatement();
             try {
                 statement.execute(addPartitionHql);
@@ -79,7 +127,7 @@ public class HiveUtils {
 
     public static StructTypeInfo getColumnTypeDescs(String db, String table) throws Exception {
         Map<String, TypeInfo> typeInfoMap = new LinkedHashMap<>();
-        try (Connection connection = DriverManager.getConnection(url, username, "")) {
+        try (Connection connection = pool.getConnection()) {
             List<ColumnTypeDesc> ctdList = getPartitionColumns(db, table, connection);
             Set<String> partCol = new HashSet<>();
             for (ColumnTypeDesc ctd : ctdList) {
@@ -111,5 +159,9 @@ public class HiveUtils {
             this.columnName = columnName;
             this.typeInfo = typeInfo;
         }
+    }
+
+    public static void closeHiveConnect() {
+        prestoConnectionPool.closePool();
     }
 }

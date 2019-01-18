@@ -1,5 +1,6 @@
 package com.wxmimperio.hadoop.Deduplication;
 
+import com.wxmimperio.hadoop.Deduplication.utils.HDFSUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -58,23 +59,41 @@ public class SequenceDeduplication {
     }
 
     public static void main(String[] args) throws Exception {
-        Configuration conf = new Configuration();
-        conf.addResource(CORE_SITE_XML);
-        conf.addResource(HDFS_SITE_XML);
-        conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-        conf.setBoolean(MAPRED_OUTPUT_COMPRESS, false);
+        Configuration conf = HDFSUtils.getConf();
 
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         if (otherArgs.length != 3) {
-			// inputFormat：org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat
+            // inputFormat：org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat
             LOG.error("Usage: hadoop jar xxx.jar <inPath> <inputFormat> <outPath>");
             System.exit(1);
         }
 
+        String inputPath = otherArgs[0];
+        String outputPath = otherArgs[2];
         Class inputFormat = Class.forName(otherArgs[1]);
 
         // delete output directory
-        deleteFile(conf, otherArgs[2]);
+        deleteFile(conf, outputPath);
+
+        int fileNum = HDFSUtils.getFileList(inputPath).size();
+        if (fileNum <= 0) {
+            LOG.error("Input = {} is empty, can not run job.", inputPath);
+            System.exit(1);
+        }
+        long inputSize = HDFSUtils.getSize(inputPath);
+        LOG.info("inputSize: {}", inputSize);
+        int reduceNum;
+        int splitNum = (int) (inputSize / (2048 * 1024 * 1024L));
+        LOG.info("splitNum: {}", splitNum);
+        int maxSplitNum = 100;
+        if (splitNum > maxSplitNum) {
+            reduceNum = 100;
+        } else if (splitNum == 0) {
+            reduceNum = 1;
+        } else {
+            reduceNum = splitNum;
+        }
+        LOG.info("reduce num = {}", reduceNum);
 
         Job job = Job.getInstance();
         job.setJarByClass(SequenceDeduplication.class);
@@ -86,11 +105,11 @@ public class SequenceDeduplication {
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
         job.setNumReduceTasks(1);
 
-        FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
-        SequenceFileOutputFormat.setOutputPath(job, new Path(otherArgs[2]));
+        FileInputFormat.addInputPath(job, new Path(inputPath));
+        SequenceFileOutputFormat.setOutputPath(job, new Path(outputPath));
         SequenceFileOutputFormat.setOutputCompressionType(job, SequenceFile.CompressionType.BLOCK);
 
-        if(job.waitForCompletion(true)) {
+        if (job.waitForCompletion(true)) {
             Counters counters = job.getCounters();
             Counter counter = counters.findCounter(Count.TotalCount);
             LOG.info("TotalCount = " + counter.getValue());

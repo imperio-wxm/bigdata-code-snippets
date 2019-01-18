@@ -1,5 +1,6 @@
 package com.wxmimperio.hadoop.Deduplication;
 
+import com.wxmimperio.hadoop.Deduplication.utils.HDFSUtils;
 import com.wxmimperio.hadoop.Deduplication.utils.HiveUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -98,9 +99,7 @@ public class OrcReadDeduplication {
         String outputPath = args[1];
         String tableName = args[2];
 
-        Configuration conf = new Configuration();
-        conf.addResource("hdfs-site.xml");
-        conf.addResource("core-site.xml");
+        Configuration conf = HDFSUtils.getConf();
 
         StructTypeInfo schema = HiveUtil.getColumnTypeDescs("dw", tableName);
         conf.set("schema", schema.getTypeName());

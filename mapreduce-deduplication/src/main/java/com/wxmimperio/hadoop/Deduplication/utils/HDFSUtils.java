@@ -155,11 +155,6 @@ public class HDFSUtils {
         }
     }
 
-    public static void main(String[] args) {
-        String str = "dfasd|fsdf|dfad";
-        System.out.println(str.replaceAll("\\|","/"));
-    }
-
     public static void formatFieldValue(SettableStructObjectInspector oi, StructField sf, OrcStruct orcStruct, String val) {
         WritableComparable wc = null;
         try {

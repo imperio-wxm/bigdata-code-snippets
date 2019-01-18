@@ -64,6 +64,25 @@
             <version>${hive.version}</version>
             <scope>${hive.scope}</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.3.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.3.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -102,7 +121,7 @@
                             <transformers>
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.wxmimperio.hadoop.Deduplication.OrcReadDeduplication</mainClass>
+                                    <mainClass>com.wxmimperio.hadoop.Deduplication.SequenceDeduplication</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
