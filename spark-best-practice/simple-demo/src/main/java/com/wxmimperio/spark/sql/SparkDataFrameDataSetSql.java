@@ -55,7 +55,7 @@ public class SparkDataFrameDataSetSql {
         integerDS.show();
 
         // read dataset from jsonFile
-        spark.read().json(jsonPath).as(personEncoder).show();
+       spark.read().json(jsonPath).as(personEncoder).show();
     }
 
     public static class Person implements Serializable {
