@@ -28,7 +28,7 @@ public class HiveTables {
                 .enableHiveSupport()
                 .getOrCreate();
 
-        spark.sql("CREATE TABLE IF NOT EXISTS person (key INT, value STRING) ROW FORMAT DELIMITED '\t' USING hive OPTIONS(fileFormat 'textfile')");
+        spark.sql("CREATE TABLE IF NOT EXISTS person (key INT, value STRING) PARTITIONED BY (part_date string) row format delimited fields terminated by ',' STORED AS TEXTFILE");
         spark.sql("LOAD DATA LOCAL INPATH '" + dataPath + "' OVERWRITE INTO TABLE person PARTITION (part_date='2019-02-01')");
         spark.sql("SELECT * FROM person").show();
     }

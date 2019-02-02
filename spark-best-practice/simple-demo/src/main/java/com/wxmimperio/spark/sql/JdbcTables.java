@@ -1,6 +1,5 @@
 package com.wxmimperio.spark.sql;
 
-import org.apache.hadoop.yarn.webapp.hamlet.Hamlet;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SaveMode;
@@ -24,11 +23,27 @@ public class JdbcTables {
         connectionProperties.put("password", "password");
 
         Dataset<Row> dataSet = spark.read().jdbc(mysqlUrl, "wxm.user", connectionProperties);
+        /**
+         * +---+-----+---+------+
+         * | id| name|age|gender|
+         * +---+-----+---+------+
+         * |161|wxm_0|  0|     男|
+         * |162|wxm_1|  1|     男|
+         * |163|wxm_2|  2|     男|
+         * |164|wxm_3|  3|     男|
+         * |165|wxm_4|  4|     男|
+         * |166|wxm_5|  5|     男|
+         * |167|wxm_6|  6|     男|
+         * |168|wxm_7|  7|     男|
+         * |169|wxm_8|  8|     男|
+         * |170|wxm_9|  9|     男|
+         * +---+-----+---+------+
+         */
         dataSet.limit(10).show();
 
         List<User> users = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            users.add(new User( "wxm_" + i, i, "男"));
+            users.add(new User("wxm_" + i, i, "男"));
         }
 
         // 在SaveMode.Overwrite模式下，先truncate表所有数据，再将新数据插入
