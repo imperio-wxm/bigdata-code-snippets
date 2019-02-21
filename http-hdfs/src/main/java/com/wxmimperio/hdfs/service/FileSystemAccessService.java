@@ -26,7 +26,7 @@ public class FileSystemAccessService implements FileSystemAccess {
     /**
      * FileSystem cache
      */
-    private ConcurrentHashMap<String, CachedFileSystem> fsCache = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, CachedFileSystem> fsCache;
 
     @Autowired
     public FileSystemAccessService(HdfsConfig hdfsConfig) {
@@ -40,6 +40,7 @@ public class FileSystemAccessService implements FileSystemAccess {
         configuration.addResource(new Path(hdfsConfig.getHdfs()));
         configuration.addResource(new Path(hdfsConfig.getCore()));
         conf = configuration;
+        fsCache = new ConcurrentHashMap<>(100000);
     }
 
     private static class CachedFileSystem {
