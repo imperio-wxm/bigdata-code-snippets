@@ -10,6 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>simple-demo</module>
+        <module>spark-phoenix</module>
     </modules>
 
     <name>spark-best-practice</name>
@@ -100,6 +101,11 @@
         <repository>
             <id>dw-snapshots</id>
             <url>http://nexus.dw.sdo.com/content/repositories/dw-snapshots/</url>
+        </repository>
+
+        <repository>
+            <id>SparkPackagesRepo</id>
+            <url>http://dl.bintray.com/spark-packages/maven</url>
         </repository>
     </repositories>
 </project>
