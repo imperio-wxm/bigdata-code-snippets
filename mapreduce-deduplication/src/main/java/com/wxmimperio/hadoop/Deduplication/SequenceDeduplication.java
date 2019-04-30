@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 import static com.wxmimperio.hadoop.Deduplication.utils.HDFSUtils.EMPTY;
 
@@ -74,6 +75,10 @@ public class SequenceDeduplication {
 
         // delete output directory
         deleteFile(conf, outputPath);
+        // delete _temporary
+        String tempDir = outputPath.replace("/merge", "") + "/_temporary";
+        LOG.info("Temp dir = " + tempDir);
+        deleteFile(conf, tempDir);
 
         int fileNum = HDFSUtils.getFileList(inputPath).size();
         if (fileNum <= 0) {
