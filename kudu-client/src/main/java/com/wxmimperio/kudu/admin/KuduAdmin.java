@@ -26,7 +26,7 @@ public class KuduAdmin {
 
             List<ColumnSchema> columns = new ArrayList<>(2);
             // pk
-            columns.add(new ColumnSchema.ColumnSchemaBuilder("event_time", Type.INT64)
+            columns.add(new ColumnSchema.ColumnSchemaBuilder("event_time", Type.UNIXTIME_MICROS)
                     .key(true)
                     .build());
             columns.add(new ColumnSchema.ColumnSchemaBuilder("_KEY", Type.INT64)
