@@ -23,6 +23,7 @@ public class SparkDemo {
         // 第一步：创建SparkConf对象,设置相关配置信息
         SparkConf conf = new SparkConf();
         conf.setAppName("wordcount");
+        conf.setMaster("local");
 
         Tuple2<String, String>[] configs = conf.getAll();
         LOG.info("config start ================");

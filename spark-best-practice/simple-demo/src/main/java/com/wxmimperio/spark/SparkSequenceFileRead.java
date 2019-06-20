@@ -22,6 +22,7 @@ public class SparkSequenceFileRead {
     public static void main(String[] args) {
         SparkConf conf = new SparkConf();
         conf.setAppName("Read Sequence");
+        conf.setMaster("local");
 
         String seqFilePath = args[0];
         String outPutPath = args[1];

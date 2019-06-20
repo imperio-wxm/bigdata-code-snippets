@@ -1,5 +1,6 @@
 package com.wxmimperio.spark;
 
+import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -18,7 +19,10 @@ public class SparkSessionShow {
     private static final Logger LOG = LoggerFactory.getLogger(SparkSessionShow.class);
 
     public static void main(String[] args) {
-        try (JavaSparkContext sc = new JavaSparkContext();
+        SparkConf conf = new SparkConf();
+        conf.setAppName("SparkSession");
+        conf.setMaster("local");
+        try (JavaSparkContext sc = new JavaSparkContext(conf);
              SparkSession sparkSession = SparkSession.builder().sparkContext(sc.sc()).getOrCreate()) {
             List<String> wordList = new ArrayList<>();
             wordList.add("While this code used the built-in support for accumulators of type Long, programmers can also create their own types by subclassing");
