@@ -27,6 +27,9 @@ public class StructuredKafkaWindowOperations {
                 .format("kafka")
                 .option("kafka.bootstrap.servers", "10.1.8.132:9092")
                 .option("subscribe", "wxm_test")
+                .option("group.id", "structured-streaming")
+                .option("startingOffsets", "latest")
+                .option("enable.auto.commit", true)
                 .load();
 
         Dataset<Tuple2<Timestamp, String>> words = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
@@ -39,10 +42,12 @@ public class StructuredKafkaWindowOperations {
                 }, Encoders.tuple(Encoders.TIMESTAMP(), Encoders.STRING()));
 
         // 滑动窗口，计算 2 min 的数据，每1 min 滑动一次
-        words.groupBy(
-                functions.window(words.col("_1"), "2 minutes", "1 minutes"),
-                words.col("_2")
-        )
+        // withWatermark 根据event_time 设定 10min 之内的数据依然按 event_time 统计
+        words.withWatermark("_1", "10 minutes")
+                .groupBy(
+                        functions.window(words.col("_1"), "2 minutes", "1 minutes"),
+                        words.col("_2")
+                )
                 .count()
                 .writeStream()
                 .outputMode(OutputMode.Update())
