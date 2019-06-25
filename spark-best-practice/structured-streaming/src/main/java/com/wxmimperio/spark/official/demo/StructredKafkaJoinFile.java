@@ -21,6 +21,9 @@ public class StructredKafkaJoinFile {
         SparkConf conf = new SparkConf();
         conf.setAppName("StructredKafkaJoinFile");
         conf.setMaster("local");
+        // 设置并行度为1，避免本地调试过多task
+        conf.set("spark.default.parallelism", "1");
+        conf.set("spark.sql.shuffle.partitions", "1");
 
         // msg {"name":2,"event_time":"2019-06-20 19:09:48"}
         SparkSession spark = SparkSession.builder().config(conf).getOrCreate();
@@ -29,9 +32,7 @@ public class StructredKafkaJoinFile {
                 .format("kafka")
                 .option("kafka.bootstrap.servers", "10.1.8.132:9092")
                 .option("subscribe", "wxm_test")
-                .option("group.id", "structured-streaming")
-                .option("startingOffsets", "latest")
-                .option("enable.auto.commit", true)
+                //.option("startingOffsets", "latest")
                 .load();
 
         Dataset<Row> words = df.selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
@@ -40,7 +41,10 @@ public class StructredKafkaJoinFile {
                     String eventTime = jsonObject.get("event_time").getAsString();
                     String name = jsonObject.get("name").getAsString();
                     return new Tuple2<>(eventTime, name);
-                }, Encoders.tuple(Encoders.STRING(), Encoders.STRING())).selectExpr("_1 as event_time", "_2 as name");
+                }, Encoders.tuple(Encoders.STRING(), Encoders.STRING()))
+                .selectExpr("_1 as event_time", "_2 as name")
+                // 去重
+                .dropDuplicates("event_time");
 
         words.createOrReplaceTempView("wxm_test");
 
@@ -51,7 +55,8 @@ public class StructredKafkaJoinFile {
 
         // 聚合操作会触发 shuffle
         Dataset<Row> streamingSql = spark.sql("select count(*),b.age from wxm_test as a left join people b on a.name = b.name group by b.age");
-        //Dataset<Row> streamingSql = spark.sql("select * from wxm_test");
+        //streamingSql.checkpoint(true);
+        // Dataset<Row> streamingSql = spark.sql("select * from wxm_test");
         streamingSql.writeStream()
                 .outputMode(OutputMode.Update())
                 .format("console")
