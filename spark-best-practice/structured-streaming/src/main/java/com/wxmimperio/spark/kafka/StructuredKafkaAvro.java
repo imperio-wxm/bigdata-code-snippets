@@ -17,6 +17,7 @@ import org.apache.spark.sql.streaming.Trigger;
 
 import static org.apache.spark.sql.avro.package$.MODULE$;
 import static org.apache.spark.sql.functions.col;
+import static org.apache.spark.sql.functions.soundex;
 
 import java.util.concurrent.TimeUnit;
 
@@ -57,13 +58,19 @@ public class StructuredKafkaAvro {
                 .writeStream()
                 .format("console")
                 .trigger(Trigger.ProcessingTime(5, TimeUnit.SECONDS))
-                .foreachBatch((VoidFunction2<Dataset<String>, Long>) (stringDataset, aLong) -> stringDataset.foreach((ForeachFunction<String>) System.out::println))
+                .foreachBatch((VoidFunction2<Dataset<String>, Long>) (stringDataset, aLong) -> stringDataset.foreach(new ForeachFunction<String>() {
+                    @Override
+                    public void call(String s) throws Exception {
+                        System.out.println(s);
+                    }
+                }))
                 .start()
                 .awaitTermination();*/
 
-        Dataset<Row> kafkaTable = df.select(MODULE$.from_avro(col("value"), schema.get("schema").getAsString()).as("wxm_test_streaming"));
+        // {"event_time":"2019-07-01 10:38:11","game_id":"111","channel_id":"123456","mid":"dfasdfas","character_id":"4546fdsfa","deposit_amount":"555","order_id":"ab2d2a38-7755-424d-a63b-fea80678989e","note":"null"}
+        Dataset<Row> kafkaTable = df.select(MODULE$.from_avro(col("value"), schema.get("schema").getAsString()).as("value"));
         kafkaTable.createOrReplaceTempView("wxm_test_streaming");
-        Dataset<Row> streamingSql = spark.sql("select wxm_test_streaming.event_time from wxm_test_streaming");
+        Dataset<Row> streamingSql = spark.sql("select value.event_time from wxm_test_streaming");
         streamingSql.writeStream()
                 .outputMode(OutputMode.Append())
                 .format("console")
