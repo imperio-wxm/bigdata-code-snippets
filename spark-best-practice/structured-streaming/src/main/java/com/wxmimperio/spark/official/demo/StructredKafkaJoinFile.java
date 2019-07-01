@@ -18,6 +18,10 @@ import java.util.concurrent.TimeUnit;
 public class StructredKafkaJoinFile {
 
     public static void main(String[] args) throws Exception {
+
+        // checkpoint 后聚合结果会被保存，程序挂掉会从checkpoint 点继续聚合
+        String checkPointPath = "D:\\d_backup\\github\\hadoop-code-snippets\\spark-best-practice\\structured-streaming\\checkpoint";
+
         SparkConf conf = new SparkConf();
         conf.setAppName("StructredKafkaJoinFile");
         conf.setMaster("local");
@@ -31,7 +35,7 @@ public class StructredKafkaJoinFile {
                 .readStream()
                 .format("kafka")
                 .option("kafka.bootstrap.servers", "10.1.8.132:9092")
-                .option("subscribe", "wxm_test")
+                .option("subscribe", "wxm_test_streaming")
                 //.option("startingOffsets", "latest")
                 .load();
 
@@ -42,9 +46,9 @@ public class StructredKafkaJoinFile {
                     String name = jsonObject.get("name").getAsString();
                     return new Tuple2<>(eventTime, name);
                 }, Encoders.tuple(Encoders.STRING(), Encoders.STRING()))
-                .selectExpr("_1 as event_time", "_2 as name")
-                // 去重
-                .dropDuplicates("event_time");
+                .selectExpr("_1 as event_time", "_2 as name");
+        // 去重
+        //.dropDuplicates("event_time");
 
         words.createOrReplaceTempView("wxm_test");
 
@@ -58,8 +62,14 @@ public class StructredKafkaJoinFile {
         //streamingSql.checkpoint(true);
         // Dataset<Row> streamingSql = spark.sql("select * from wxm_test");
         streamingSql.writeStream()
-                .outputMode(OutputMode.Update())
+                // Output mode
+                .outputMode(OutputMode.Complete())
+                // Details of the output sink
                 .format("console")
+                // text文件输出，option(path,"");
+                //.format("text")
+                // Trigger interval(Optionally)
+                //.option("checkpointLocation", checkPointPath)
                 .trigger(Trigger.ProcessingTime(5, TimeUnit.SECONDS))
                 .start()
                 .awaitTermination();
