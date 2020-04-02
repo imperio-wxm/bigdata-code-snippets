@@ -41,7 +41,7 @@ object FileSplitMain {
         sc.stop()
     }
 
-    def parserData(line: String, startTime: LocalDateTime, endTime: LocalDateTime, broadcast: Broadcast[mutable.HashMap[String, Schema]]): Tuple2[Text, Text] = {
+    def parserData(line: String, startTime: LocalDateTime, endTime: LocalDateTime, broadcast: Broadcast[mutable.HashMap[String, Schema]]): (Text, Text) = {
         var result = (new Text(), new Text())
         try {
             if (StringUtils.isNotEmpty(line.toString)) {
