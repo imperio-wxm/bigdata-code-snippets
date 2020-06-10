@@ -1,7 +1,6 @@
 package com.wxmimperio.phoenix.commons.pool;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +8,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -24,7 +24,7 @@ public class MainPoolTest {
         int index = 0;
         boolean isFirstTime = true;
         while (index < 10000000) {
-            List<Future> futureList = Lists.newArrayList();
+            List<Future> futureList = new ArrayList<>();
             for (int i = 1; i <= 30; i++) {
                 LOG.info("run getNumActive = " + phoenixPool.getNumActive());
                 LOG.info("run getNumIdle = " + phoenixPool.getNumIdle());

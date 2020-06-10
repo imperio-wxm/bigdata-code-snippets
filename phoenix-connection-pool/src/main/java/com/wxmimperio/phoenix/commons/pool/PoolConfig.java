@@ -1,6 +1,5 @@
 package com.wxmimperio.phoenix.commons.pool;
 
-import org.apache.phoenix.shaded.org.apache.commons.configuration.Configuration;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,7 +47,7 @@ public class PoolConfig {
         String driver = "org.apache.phoenix.jdbc.PhoenixDriver";
         this.maxConnectionsToKeepAlive = 64;
         Properties props = new Properties();
-        InputStream input = Configuration.class.getResourceAsStream("/phoenix-site.properties");
+        InputStream input = null;
         try {
             props.load(input);
             Class.forName(driver);

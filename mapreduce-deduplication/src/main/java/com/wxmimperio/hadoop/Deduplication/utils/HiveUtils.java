@@ -74,10 +74,13 @@ public class HiveUtils {
     private static List<String> combineConfig() throws Exception {
         List<String> tableNames = Lists.newArrayList();
         JsonObject jsonObject = getConfigTopics(bundle.getString("hdfs.config.url"));
+        JsonObject logObject = getConfigTopics(bundle.getString("hdfs.log.config.url"));
         String schemaTables = jsonObject.get("schema.topic.name") == null ? null : jsonObject.get("schema.topic.name").getAsString();
         String directTables = jsonObject.get("direct.topic.name") == null ? null : jsonObject.get("direct.topic.name").getAsString();
+        String logTables = logObject.get("schema.topic.name") == null ? null : logObject.get("schema.topic.name").getAsString();
         tableNames.addAll(StringUtils.isEmpty(schemaTables) ? Lists.newArrayList() : Arrays.asList(schemaTables.split(",", -1)));
         tableNames.addAll(StringUtils.isEmpty(directTables) ? Lists.newArrayList() : Arrays.asList(directTables.split(",", -1)));
+        tableNames.addAll(StringUtils.isEmpty(logTables) ? Lists.newArrayList() : Arrays.asList(logTables.split(",", -1)));
         return tableNames;
     }
 
