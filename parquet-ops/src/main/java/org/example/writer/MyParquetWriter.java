@@ -8,10 +8,12 @@ import org.apache.parquet.example.data.simple.SimpleGroupFactory;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
+import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import shaded.parquet.it.unimi.dsi.fastutil.longs.Long2IntMap;
 
 import java.io.IOException;
 
@@ -35,8 +37,24 @@ public class MyParquetWriter {
 
         try (ParquetWriter<Group> writer = builder.build()) {
             SimpleGroupFactory groupFactory = new SimpleGroupFactory(schema);
+            Group root = groupFactory.newGroup();
+            root.append("log_id", Long.parseLong("123456"));
 
-            String[] access_log = {"111111", "22222", "33333", "44444", "55555", "666666", "777777", "888888", "999999", "101010"};
+            Group appInfo = root.addGroup("app_info");
+            appInfo.append("app_id", Integer.parseInt("1111"));
+            appInfo.append("platform", Integer.parseInt("2222"));
+
+            Group runTimeInfo = root.addGroup("runtime_info");
+            runTimeInfo.append("src_port", Long.parseLong("55555"));
+            runTimeInfo.append("shared", Binary.fromConstantByteArray("wxmimperio".getBytes()));
+
+            root.append("event_category", Binary.fromReusedByteArray("5".getBytes()));
+
+
+            writer.write(root);
+
+
+            /*String[] access_log = {"111111", "22222", "33333", "44444", "55555", "666666", "777777", "888888", "999999", "101010"};
             for (int i = 0; i < 1000; i++) {
                 writer.write(groupFactory.newGroup()
                         .append("log_id", Long.parseLong(access_log[0]))
@@ -49,7 +67,7 @@ public class MyParquetWriter {
                         .append("protocol_type", Integer.parseInt(access_log[7]))
                         .append("url64", access_log[8])
                         .append("access_time", access_log[9]));
-            }
+            }*/
         } finally {
             LOG.info(String.format("Write parquet file to = %s", file));
         }
