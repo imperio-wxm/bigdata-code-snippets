@@ -2,6 +2,7 @@ package com.wxmimperio;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.wxmimperio.auth.auth.FlumeAuthenticationUtil;
+import com.wxmimperio.auth.auth.FlumeAuthenticator;
 import com.wxmimperio.auth.auth.PrivilegedExecutor;
 import com.wxmimperio.common.ParamConstants;
 import org.apache.hadoop.conf.Configuration;
@@ -9,6 +10,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +27,32 @@ public class AuthMain {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthMain.class);
 
-
     public static void main(String[] args) throws Exception {
+        //System.setProperty("java.security.krb5.conf", "/Users/weiximing/code/github/bigdata-code-snippets/flume-kerberos-auth/src/main/resources/krb5.conf");
+        System.setProperty("java.security.krb5.conf", ParamConstants.KRB5_CONF);
+        //String keyTab = "/Users/weiximing/code/github/bigdata-code-snippets/flume-kerberos-auth/src/main/resources/lancer.keytab";
+        Configuration configuration = new Configuration();
+        configuration.set("hadoop.security.authentication", "kerberos");
+        configuration.addResource(new Path(ParamConstants.HDFS_SITE));
+        configuration.addResource(new Path(ParamConstants.CORE_SITE));
+        UserGroupInformation.setConfiguration(configuration);
+        System.out.println(UserGroupInformation.isSecurityEnabled());
+        System.out.println("isLoginKeytabBased = " + UserGroupInformation.isLoginKeytabBased());
+        System.out.println("isLoginTicketBased = " + UserGroupInformation.isLoginTicketBased());
+        /*UserGroupInformation.loginUserFromKeytab(ParamConstants.KERB_CONFIG_PRINCIPAL, ParamConstants.KERB_KEY_TAB);
+        System.out.println("isLoginKeytabBased = " + UserGroupInformation.isLoginKeytabBased());
+        System.out.println("isLoginTicketBased = " + UserGroupInformation.isLoginTicketBased());
+        System.out.println("getLoginUser = " +  UserGroupInformation.getLoginUser().getUserName());*/
+        System.out.println("======");
+        FlumeAuthenticator flumeAuthenticator = FlumeAuthenticationUtil.getAuthenticator(ParamConstants.KERB_CONFIG_PRINCIPAL, ParamConstants.KERB_KEY_TAB);
+        System.out.println(flumeAuthenticator.isAuthenticated());
+        System.out.println("isLoginKeytabBased = " + UserGroupInformation.isLoginKeytabBased());
+        System.out.println("isLoginTicketBased = " + UserGroupInformation.isLoginTicketBased());
+        System.out.println("getLoginUser = " +  UserGroupInformation.getLoginUser().getUserName());
+
+    }
+
+   /* public static void main(String[] args) throws Exception {
         if (args.length <= 0) {
             System.out.println("error");
             System.exit(1);
@@ -67,7 +93,7 @@ public class AuthMain {
         });
         LOG.info("Future result = " + future.get());
         callTimeoutPool.shutdown();
-    }
+    }*/
 
     private static void writeHDFS(FileSystem fs, String localPath, String hdfsPath) {
         if (null == fs) {
