@@ -22,6 +22,8 @@ public class MyParquetReader {
         try (ParquetReader<Group> reader = builder.build()) {
             SimpleGroup group = (SimpleGroup) reader.read();
 
+            System.out.println(group.toString());
+
             for (int i = 0; i < messageType.getFieldCount(); i++) {
                 Type type = messageType.getType(i);
                 if (type.isPrimitive()) {

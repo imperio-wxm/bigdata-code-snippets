@@ -8,20 +8,18 @@ import org.apache.parquet.example.data.simple.SimpleGroupFactory;
 import org.apache.parquet.hadoop.ParquetFileWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.example.ExampleParquetWriter;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import shaded.parquet.it.unimi.dsi.fastutil.longs.Long2IntMap;
-
-import java.io.IOException;
 
 
 public class MyParquetWriter {
     private static final Logger LOG = LoggerFactory.getLogger(MyParquetWriter.class);
 
-    public static void write(String schemaStr, String file) throws IOException {
+    public static void write(String schemaStr, String file) throws Exception {
 
         MessageType schema = MessageTypeParser.parseMessageType(schemaStr);
         /*
@@ -30,28 +28,42 @@ public class MyParquetWriter {
          * ParquetProperties.WriterVersion.PARQUET_1_0, conf
          */
         ExampleParquetWriter.Builder builder = ExampleParquetWriter
-                .builder(new Path(file)).withWriteMode(ParquetFileWriter.Mode.CREATE)
+                .builder(new Path(file)).withWriteMode(ParquetFileWriter.Mode.OVERWRITE)
                 .withWriterVersion(ParquetProperties.WriterVersion.PARQUET_1_0)
+                //.withPageSize(1024)
+                //.withPageRowCountLimit(1)
+                .withRowGroupSize(1024 * 64)
+                .withCompressionCodec(CompressionCodecName.SNAPPY)
                 .withConf(new Configuration())
                 .withType(schema);
 
         try (ParquetWriter<Group> writer = builder.build()) {
             SimpleGroupFactory groupFactory = new SimpleGroupFactory(schema);
-            Group root = groupFactory.newGroup();
-            root.append("log_id", Long.parseLong("123456"));
-
-            Group appInfo = root.addGroup("app_info");
-            appInfo.append("app_id", Integer.parseInt("1111"));
-            appInfo.append("platform", Integer.parseInt("2222"));
-
-            Group runTimeInfo = root.addGroup("runtime_info");
-            runTimeInfo.append("src_port", Long.parseLong("55555"));
-            runTimeInfo.append("shared", Binary.fromConstantByteArray("wxmimperio".getBytes()));
-
-            root.append("event_category", Binary.fromReusedByteArray("5".getBytes()));
 
 
-            writer.write(root);
+            for (int i = 0; i < 10000000; i++) {
+                Group root = groupFactory.newGroup();
+
+                root.append("log_id", Long.parseLong("123456" + i));
+
+                Group appInfo = root.addGroup("app_info");
+                appInfo.append("app_id", Integer.parseInt("1111" + i));
+                appInfo.append("platform", Integer.parseInt("2222" + i));
+
+                Group runTimeInfo = root.addGroup("runtime_info");
+                runTimeInfo.append("src_port", Long.parseLong("55555" + i));
+                runTimeInfo.append("shared", Binary.fromConstantByteArray(("wxmimperio" + i).getBytes()));
+
+                root.append("event_category", Binary.fromReusedByteArray(("5" + i).getBytes()));
+
+                // app_exposure_info struct<array<content_infos:struct<event_id:string,array<extended_fields:struct<key:string,value:string>>>>>
+                // app_exposure_info struct<array<content_infos:struct<event_id:string,array<extended_fields:struct<key:string,value:string>>>>>
+                writer.write(root);
+                Thread.sleep(10);
+                if(i % 500 == 0) {
+                    LOG.info("size = " + writer.getDataSize());
+                }
+            }
 
 
             /*String[] access_log = {"111111", "22222", "33333", "44444", "55555", "666666", "777777", "888888", "999999", "101010"};

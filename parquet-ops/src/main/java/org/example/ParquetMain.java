@@ -16,6 +16,8 @@ public class ParquetMain {
                 + "optional int64 src_port;" + "optional int64 dest_port;"
                 + "optional int32 protocol_type;" + "optional binary url64;"
                 + "optional binary access_time;}";
+
+        //String file = "/Users/weiximing/code/github/bigdata-code-snippets/parquet-ops/src/main/resources/files/part-99-26.lancer2.parquet";
         String file = "/Users/weiximing/code/github/bigdata-code-snippets/parquet-ops/src/main/resources/files/myschema.parquet";
 
         String nestedSchema =
@@ -32,14 +34,23 @@ public class ParquetMain {
                         + " optional binary event_category (ENUM) = 4;"
                         + "}";
 
-        //MyParquetWriter.write(nestedSchema, file);
+        //  optional group app_exposure_info = 12 {
+        //    repeated group content_infos = 1 {
+        //      optional binary event_id (STRING) = 1;
+        //      repeated group extended_fields = 2 {
+        //        optional binary key (STRING) = 1;
+        //        optional binary value (STRING) = 2;
+        //      }
+        //    }
+        //  }
 
-        MessageType type = MyParquetUtils.getSchema(file);
+        MyParquetWriter.write(nestedSchema, file);
 
-        MyParquetReader.read(file, type);
+        //MessageType type = MyParquetUtils.getSchema(file);
+
+        //MyParquetReader.read(file, type);
 
         //System.out.println(type.toString());
-
-        MyParquetUtils.parserMessageType(type);
+        //MyParquetUtils.parserMessageType(type);
     }
 }
