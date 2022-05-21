@@ -35,20 +35,6 @@
             <artifactId>phoenix-spark</artifactId>
             <version>4.14.0-cdh5.11.2</version>
         </dependency>-->
-
-
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>2.6.0-cdh5.11.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.phoenix</groupId>
-            <artifactId>phoenix-client</artifactId>
-            <version>4.14.0-cdh5.11.2-sdg-1.0.2-RELEASE</version>
-            <classifier>client</classifier>
-        </dependency>
     </dependencies>
 
    <!-- <build>

@@ -11,8 +11,6 @@
     <modules>
         <module>simple-demo</module>
         <module>spark-phoenix</module>
-        <module>spark-springboot</module>
-        <module>structured-streaming</module>
     </modules>
 
     <parent>
@@ -32,6 +30,11 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>com.thoughtworks.paranamer</groupId>
+            <artifactId>paranamer</artifactId>
+            <version>2.8</version>
+        </dependency>
 
         <dependency>
             <groupId>io.delta</groupId>
@@ -66,49 +69,42 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.11.12</version>
+            <version>2.12.15</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql_2.11</artifactId>
-            <!--<version>2.2.0.cloudera1</version>-->
-            <version>2.4.0.cloudera2</version>
+            <artifactId>spark-sql_2.12</artifactId>
+            <version>3.2.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-core_2.11</artifactId>
-        <!--    <version>2.2.0.cloudera1</version>-->
-            <version>2.4.0.cloudera2</version>
+            <artifactId>spark-core_2.12</artifactId>
+            <version>3.2.1</version>
         </dependency>
 
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-avro_2.11</artifactId>
-            <version>2.4.0.cloudera2</version>
+            <artifactId>spark-avro_2.12</artifactId>
+            <version>3.2.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-sql-kafka-0-10_2.11</artifactId>
-            <version>2.4.0.cloudera2</version>
+            <artifactId>spark-sql-kafka-0-10_2.12</artifactId>
+            <version>3.2.1</version>
         </dependency>
-
 
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
-            <version>2.6.0-cdh5.11.1</version>
+            <version>3.3.3</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
+                    <artifactId>slf4j-reload4j</artifactId>
+                    <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -116,18 +112,15 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>2.6.0-cdh5.11.1</version>
+            <version>3.3.3</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>servlet-api</artifactId>
-                    <groupId>javax.servlet</groupId>
+                    <artifactId>slf4j-reload4j</artifactId>
+                    <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
+
 
         <dependency>
             <groupId>junit</groupId>
@@ -141,21 +134,6 @@
         <repository>
             <id>cloudera</id>
             <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-        </repository>
-
-        <repository>
-            <id>nexus-public</id>
-            <url>http://nexus.dw.sdo.com/content/groups/public/</url>
-        </repository>
-
-        <repository>
-            <id>dw-releases</id>
-            <url>http://nexus.dw.sdo.com/content/repositories/dw-releases/</url>
-        </repository>
-
-        <repository>
-            <id>dw-snapshots</id>
-            <url>http://nexus.dw.sdo.com/content/repositories/dw-snapshots/</url>
         </repository>
 
         <repository>
