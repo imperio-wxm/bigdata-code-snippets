@@ -58,7 +58,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.test.skip>true</maven.test.skip>
-        <hadoop.version>2.6.0-cdh5.11.1</hadoop.version>
+        <hadoop.version>3.2.3</hadoop.version>
         <hadoop.scope>compile</hadoop.scope>
         <hive.version>1.1.0-cdh5.11.1</hive.version>
     </properties>
