@@ -24,6 +24,11 @@ public class SparkSessionShow {
         conf.setMaster("local");
         try (JavaSparkContext sc = new JavaSparkContext(conf);
              SparkSession sparkSession = SparkSession.builder().sparkContext(sc.sc()).getOrCreate()) {
+
+            sparkSession.read().format("image")
+                    .load("E:\\coding\\github\\hadoop-code-snippets\\spark-best-practice\\spark-image-process\\src\\main\\resources\\gorilla_PNG18712.png")
+                    .printSchema();
+
             List<String> wordList = new ArrayList<>();
             wordList.add("While this code used the built-in support for accumulators of type Long, programmers can also create their own types by subclassing");
             wordList.add("While this code used the built-in support for accumulators of type Long, programmers can also create their own types by subclassing");
