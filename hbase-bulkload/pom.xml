@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <hbase.version>1.2.0-cdh5.11.1</hbase.version>
         <!--<hbase.version>0.94.15-cdh4.7.0</hbase.version>-->
-        <hadoop.version>2.6.0-cdh5.11.1</hadoop.version>
+        <hadoop.version>3.2.3</hadoop.version>
         <hive.version>1.1.0-cdh5.11.1</hive.version>
         <hive.scope>compile</hive.scope>
         <maven.test.skip>true</maven.test.skip>
