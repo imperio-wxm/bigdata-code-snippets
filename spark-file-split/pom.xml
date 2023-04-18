@@ -12,7 +12,7 @@
         <java.version>1.8</java.version>
         <spark.version>2.4.0</spark.version>
         <scalaj.version>2.4.1</scalaj.version>
-        <fastjson.version>1.2.67</fastjson.version>
+        <fastjson.version>1.2.83</fastjson.version>
         <avro.version>1.9.2</avro.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -123,7 +123,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
-            <version>1.2.60</version>
+            <version>1.2.83</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
